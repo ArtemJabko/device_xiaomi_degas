@@ -63,7 +63,7 @@ ro.hardware.consumerir=common
 
 # Crypto
 ro.crypto.metadata_init_delete_all_keys.enabled=true
-ro.crypto.volume.options=aes-256-xts:aes-256-hctr2
+ro.crypto.volume.options=aes-256-xts:aes-256-cts
 
 # Display
 debug.mediatek.disp_decompress=1
@@ -208,9 +208,11 @@ drm.service.enabled=true
 ro.netflix.bsp_rev=MTK6897-37606-1
 
 # Fingerprint
-persist.vendor.fingerprint.sensor_location=610|2442|114
+persist.vendor.fingerprint.sensor_location=610|2444|105
 persist.vendor.fingerprint.type=udfps_optical
 persist.vendor.sys.fp.expolevel=0x88
+persist.vendor.sys.fp.fod.location.X_Y=505,2339
+persist.vendor.sys.fp.fod.size.width_height=210,210
 
 # GNSS
 ro.vendor.gps.chrdev=gps_drv_dl_v051
@@ -232,8 +234,8 @@ ro.vendor.mtk_nn_support=1
 
 # Platform
 ro.vendor.mediatek.platform=MT6897
-ro.vendor.mediatek.version.branch=alps-mp-u0.mp1.tc8sp1
-ro.vendor.mediatek.version.release=alps-mp-u0.mp1.tc8sp1-V1
+ro.vendor.mediatek.version.branch=alps-mp-u0.mp1.tc8sp3
+ro.vendor.mediatek.version.release=alps-mp-u0.mp1.tc8sp3-V1
 ro.vendor.mgk_name=mgk_64_k61
 
 # Radio
@@ -258,7 +260,7 @@ persist.vendor.viwifi_support=1
 persist.vendor.volte_support=1
 persist.vendor.vonr_setting_support=1
 persist.vendor.wfc.cnop_vowifi=1
-ro.product.mod_device=duchamp_global
+ro.product.mod_device=degas_global
 ro.telephony.default_network=33,33,33,33
 ro.telephony.iwlan_operation_mode=AP-assisted
 ro.vendor.md_auto_setup_ims=1

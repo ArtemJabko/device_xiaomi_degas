@@ -18,7 +18,7 @@ from extract_utils.main import (
 )
 
 namespace_imports = [
-    'device/xiaomi/duchamp',
+    'device/xiaomi/degas',
     'hardware/mediatek',
     'hardware/xiaomi'
 ]
@@ -211,7 +211,7 @@ blob_fixups: blob_fixups_user_type = {
 }  # fmt: skip
 
 module = ExtractUtilsModule(
-    'duchamp',
+    'degas',
     'xiaomi',
     blob_fixups=blob_fixups,
     lib_fixups=lib_fixups,

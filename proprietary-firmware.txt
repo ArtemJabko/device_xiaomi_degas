@@ -1,4 +1,5 @@
-# Unpinned firmware from duchamp_global-user 16 BP2A.250605.031.A3 OS3.0.6.0.WNLMIXM release-keys
+# TODO: re-extract from degas firmware - list below is inherited from duchamp.
+# Target: degas_global-user 14 UP1A.231005.007 OS2.0.202.0.VNEMIXM release-keys
 
 apusys.img;AB
 audio_dsp.img;AB

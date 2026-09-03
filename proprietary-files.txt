@@ -1,4 +1,5 @@
-# Unpinned blobs from duchamp_global-user 16 BP2A.250605.031.A3 OS3.0.6.0.WNLMIXM release-keys
+# TODO: regenerate against a degas dump - list below is inherited from duchamp.
+# Target: degas_global-user 14 UP1A.231005.007 OS2.0.202.0.VNEMIXM release-keys
 
 # Audio
 vendor/firmware/aw882xx_acf.bin
@@ -361,24 +362,14 @@ vendor/lib64/libremosaic_wrapper.so
 vendor/lib64/librfs_warp.so
 vendor/lib64/libultrahdr.so:vendor/lib64/libultrahdr-v34.so;FIX_SONAME
 vendor/lib64/libvideoBokeh.so
-vendor/lib64/mt6897/duchampgc16b3front_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/duchampgc16b3front_mipi_raw_IdxMgr.so
-vendor/lib64/mt6897/duchampgc16b3front_mipi_raw_tuning.so;SYMLINK=vendor/lib64/duchampgc16b3front_mipi_raw_tuning.so
-vendor/lib64/mt6897/duchampov08d10ultra_mipi_raw_2_IdxMgr.so;SYMLINK=vendor/lib64/duchampov08d10ultra_mipi_raw_2_IdxMgr.so
-vendor/lib64/mt6897/duchampov08d10ultra_mipi_raw_2_tuning.so;SYMLINK=vendor/lib64/duchampov08d10ultra_mipi_raw_2_tuning.so
-vendor/lib64/mt6897/duchampov08d10ultra_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/duchampov08d10ultra_mipi_raw_IdxMgr.so
-vendor/lib64/mt6897/duchampov08d10ultra_mipi_raw_tuning.so;SYMLINK=vendor/lib64/duchampov08d10ultra_mipi_raw_tuning.so
-vendor/lib64/mt6897/duchampov16a1qfront_mipi_raw_2_IdxMgr.so;SYMLINK=vendor/lib64/duchampov16a1qfront_mipi_raw_2_IdxMgr.so
-vendor/lib64/mt6897/duchampov16a1qfront_mipi_raw_2_tuning.so;SYMLINK=vendor/lib64/duchampov16a1qfront_mipi_raw_2_tuning.so
-vendor/lib64/mt6897/duchampov16a1qfront_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/duchampov16a1qfront_mipi_raw_IdxMgr.so
-vendor/lib64/mt6897/duchampov16a1qfront_mipi_raw_tuning.so;SYMLINK=vendor/lib64/duchampov16a1qfront_mipi_raw_tuning.so
-vendor/lib64/mt6897/duchampov64b40wide_mipi_raw_2_IdxMgr.so;SYMLINK=vendor/lib64/duchampov64b40wide_mipi_raw_2_IdxMgr.so
-vendor/lib64/mt6897/duchampov64b40wide_mipi_raw_2_tuning.so;SYMLINK=vendor/lib64/duchampov64b40wide_mipi_raw_2_tuning.so
-vendor/lib64/mt6897/duchampov64b40wide_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/duchampov64b40wide_mipi_raw_IdxMgr.so
-vendor/lib64/mt6897/duchampov64b40wide_mipi_raw_tuning.so;SYMLINK=vendor/lib64/duchampov64b40wide_mipi_raw_tuning.so
-vendor/lib64/mt6897/duchampsc202pcsmacro_mipi_raw_2_IdxMgr.so;SYMLINK=vendor/lib64/duchampsc202pcsmacro_mipi_raw_2_IdxMgr.so
-vendor/lib64/mt6897/duchampsc202pcsmacro_mipi_raw_2_tuning.so;SYMLINK=vendor/lib64/duchampsc202pcsmacro_mipi_raw_2_tuning.so
-vendor/lib64/mt6897/duchampsc202pcsmacro_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/duchampsc202pcsmacro_mipi_raw_IdxMgr.so
-vendor/lib64/mt6897/duchampsc202pcsmacro_mipi_raw_tuning.so;SYMLINK=vendor/lib64/duchampsc202pcsmacro_mipi_raw_tuning.so
+vendor/lib64/mt6897/degasimx906wide_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/degasimx906wide_mipi_raw_IdxMgr.so
+vendor/lib64/mt6897/degasimx906wide_mipi_raw_tuning.so;SYMLINK=vendor/lib64/degasimx906wide_mipi_raw_tuning.so
+vendor/lib64/mt6897/degasov13b10ultra_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/degasov13b10ultra_mipi_raw_IdxMgr.so
+vendor/lib64/mt6897/degasov13b10ultra_mipi_raw_tuning.so;SYMLINK=vendor/lib64/degasov13b10ultra_mipi_raw_tuning.so
+vendor/lib64/mt6897/degass5kjn1tele_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/degass5kjn1tele_mipi_raw_IdxMgr.so
+vendor/lib64/mt6897/degass5kjn1tele_mipi_raw_tuning.so;SYMLINK=vendor/lib64/degass5kjn1tele_mipi_raw_tuning.so
+vendor/lib64/mt6897/degass5kkd1front_mipi_raw_IdxMgr.so;SYMLINK=vendor/lib64/degass5kkd1front_mipi_raw_IdxMgr.so
+vendor/lib64/mt6897/degass5kkd1front_mipi_raw_tuning.so;SYMLINK=vendor/lib64/degass5kkd1front_mipi_raw_tuning.so
 vendor/lib64/mt6897/lib3a.ae.so;SYMLINK=vendor/lib64/lib3a.ae.so
 vendor/lib64/mt6897/lib3a.ae.stat.so;SYMLINK=vendor/lib64/lib3a.ae.stat.so
 vendor/lib64/mt6897/lib3a.af.assist.models1d.so;SYMLINK=vendor/lib64/lib3a.af.assist.models1d.so
@@ -1054,24 +1045,24 @@ odm/bin/crossbuild/DataSet/SQLiteModule/db/pd/mt6897/ParameterDB_pd.db;SYMLINK=o
 odm/bin/crossbuild/DataSet/SQLiteModule/db/pipeline/mt6897/ParameterDB_pipeline.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/pipeline/ParameterDB_pipeline.db;MAKE_COPY_RULE_ONLY
 odm/bin/crossbuild/DataSet/SQLiteModule/db/port_select.db;MAKE_COPY_RULE_ONLY
 odm/bin/crossbuild/DataSet/SQLiteModule/db/tone/mt6897/ParameterDB_tone.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tone/ParameterDB_tone.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampgc16b3front_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampgc16b3front_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampgc16b3front_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampgc16b3front_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov08d10ultra_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov16a1qfront_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampov64b40wide_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
-odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/duchampsc202pcsmacro_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasgc16b3front_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasgc16b3front_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasgc16b3front_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasgc16b3front_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov08d10ultra_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov16a1qfront_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degasov64b40wide_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw/ISP_param.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw_2/mt6897/ISP_mapping.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw_2/ISP_mapping.db;MAKE_COPY_RULE_ONLY
+odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw_2/mt6897/ISP_param.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/degassc202pcsmacro_mipi_raw_2/ISP_param.db;MAKE_COPY_RULE_ONLY
 odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/mt6897/ISP_info.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB/ISP_info.db;MAKE_COPY_RULE_ONLY
 odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB_aov/mt6897/ISP_info.db;SYMLINK=odm/bin/crossbuild/DataSet/SQLiteModule/db/tuning_DB_aov/ISP_info.db;MAKE_COPY_RULE_ONLY
 
@@ -1724,10 +1715,11 @@ vendor/etc/init/android.hardware.tetheroffload-V1-service.rc
 vendor/etc/vintf/manifest/android.hardware.tetheroffload-V1-service.xml
 
 # Touchscreen firmware
-vendor/firmware/focaltech_ts_fw.bin
-vendor/firmware/goodix_cfg_group_duchamp.bin
-vendor/firmware/goodix_firmware_duchamp.bin
-vendor/firmware/goodix_test_limits_255.csv
+odm/firmware/focaltech_ts_fw_degas.bin
+odm/firmware/goodix_cfg_group_degas.bin
+odm/firmware/goodix_cfg_group_degas_nowater.bin
+odm/firmware/goodix_firmware_degas.bin
+odm/firmware/goodix_test_limits_255.csv
 
 # Thermal
 odm/etc/thermal-4k.conf

@@ -1,5 +1,11 @@
 # Charger
 persist.vendor.accelerate.charge=true
+persist.vendor.battery.health=true
+persist.vendor.battery.health.optimise=true
+persist.vendor.hightemp.notice=true
+persist.vendor.night.charge=true
+persist.vendor.region.charger=GL
+persist.vendor.smartchg=342
 
 # Display
 persist.vendor.dc_backlight.enable=false
@@ -23,6 +29,8 @@ persist.vendor.radio.dynamic_sar=1
 persist.vendor.sensor.powbrightness=400
 persist.vendor.sensor.mischeck=true
 persist.vendor.sensor.maxbrightness=8191
+persist.vendor.darkcal.hilimit=100
+persist.vendor.darkcal.lolimit=60
 persist.vendor.debug.collision.dfx=true
 
 # Thermal
