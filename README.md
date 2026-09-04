@@ -24,8 +24,3 @@ The Xiaomi 14T (codename `degas`) is a smartphone from Xiaomi announced in Septe
 | Rear camera | 50 MP Sony IMX906 (wide) + 50 MP Samsung S5KJN1 (2x tele) + 12 MP OmniVision OV13B10 (ultrawide) |
 | Front camera| 32 MP Samsung S5KKD1                                 |
 | Fingerprint | Under-display optical (Goodix)                       |
-
-## Status / known gaps
-
-See `DIFFERENCES.md` for the full duchamp->degas porting notes and the list of
-values that still need verification on real hardware.
