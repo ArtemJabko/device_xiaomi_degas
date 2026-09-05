@@ -258,7 +258,7 @@ PRODUCT_PACKAGES += \
     PowerOffAlarm
 
 # Properties
-include hardware/mediatek/configs/properties/vendor_logtag.mk
+include $(LOCAL_PATH)/configs/properties/vendor_logtag.mk
 
 # Radio
 ENABLE_VENDOR_RIL_SERVICE := true
