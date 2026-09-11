@@ -33,10 +33,6 @@ AB_OTA_POSTINSTALL_CONFIG += \
     POSTINSTALL_OPTIONAL_system=true
 
 PRODUCT_PACKAGES += \
-    android.hardware.boot-service.mediatek \
-    android.hardware.boot-service.mediatek_recovery
-
-PRODUCT_PACKAGES += \
     create_pl_dev \
     create_pl_dev.recovery
 
@@ -172,7 +168,6 @@ PRODUCT_PACKAGES += \
     init.connectivity.rc \
     init.fingerprint.rc \
     init.mt6897.rc \
-    init.mt6897.usb.rc \
     init.project.rc \
     init.sensor_2_0.rc \
     ueventd.mt6897.rc \
