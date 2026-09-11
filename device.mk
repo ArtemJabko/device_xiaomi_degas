@@ -23,6 +23,9 @@ PRODUCT_VIRTUAL_AB_COMPRESSION_METHOD := lz4
 PRODUCT_VENDOR_PROPERTIES += ro.virtual_ab.compression.threads=true
 endif
 
+# Use erofs for system partitions to fit stock super layout.
+PRODUCT_SYSTEM_PARTITIONS_FILE_SYSTEM_TYPE := erofs
+
 AB_OTA_POSTINSTALL_CONFIG += \
     RUN_POSTINSTALL_system=true \
     POSTINSTALL_PATH_system=system/bin/otapreopt_script \
