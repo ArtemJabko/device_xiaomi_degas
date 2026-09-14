@@ -26,6 +26,10 @@ endif
 # Use erofs for system partitions to fit stock super layout.
 PRODUCT_SYSTEM_PARTITIONS_FILE_SYSTEM_TYPE := erofs
 
+# LineageOS webview prebuilt manifest lacks optional uses-libraries
+# expected by newer build system (com.android.extensions.xr).
+PRODUCT_BROKEN_VERIFY_USES_LIBRARIES := true
+
 AB_OTA_POSTINSTALL_CONFIG += \
     RUN_POSTINSTALL_system=true \
     POSTINSTALL_PATH_system=system/bin/otapreopt_script \
