@@ -59,6 +59,12 @@ TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/$(BOARD_KERNEL_IMAGE_NAME)
 TARGET_PREBUILT_KERNEL_HEADERS := $(KERNEL_PATH)/kernel-uapi-headers.tar.gz
 BOARD_PREBUILT_DTBIMAGE_DIR := $(KERNEL_PATH)/dtb
 
+# No kernel source synced (prebuilt-kernel device). A local stub at
+# kernel/xiaomi/degas satisfies the kernel-headers generator; force the
+# prebuilt kernel even though the stub source dir exists.
+TARGET_KERNEL_CONFIG := degas_prebuilt_stub
+TARGET_FORCE_PREBUILT_KERNEL := true
+
 BOARD_KERNEL_MODULE_DIR := $(KERNEL_PATH)/modules
 BOARD_SYSTEM_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/,$(BOARD_SYSTEM_KERNEL_MODULES_LOAD))
 BOARD_VENDOR_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/,$(BOARD_VENDOR_KERNEL_MODULES_LOAD))
