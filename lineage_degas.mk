@@ -23,6 +23,6 @@ PRODUCT_CHARACTERISTICS := nosdcard
 PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
-    BuildDesc="missi-user 14 UP1A.231005.007 OS2.0.202.0.VNEMIXM release-keys" \
-    BuildFingerprint=Xiaomi/degas_global/degas:14/UP1A.231005.007/OS2.0.202.0.VNEMIXM:user/release-keys \
+    BuildDesc="missi-user 16 BP2A.250605.031.A3 OS3.0.4.0.WNEMIXM release-keys" \
+    BuildFingerprint=Xiaomi/degas_global/degas:16/BP2A.250605.031.A3/OS3.0.4.0.WNEMIXM:user/release-keys \
     DeviceProduct=degas_global
