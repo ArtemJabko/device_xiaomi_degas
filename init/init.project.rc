@@ -1,4 +1,15 @@
 on post-fs-data
+    # Xiaomi's collision telemetry writer can emit empty lines indefinitely and
+    # citsensorservice parses the whole file on start, pinning a core at 100%
+    # (SoC at 90 C). Nothing on LineageOS reads these records, and /mnt/vendor/
+    # persist survives reflash and factory reset, so truncate it every boot.
+    write /mnt/vendor/persist/sensors/collisionData.txt ""
+
+    # The boot control HAL opens /dev/ufs-bsg0 as root, but the node comes up
+    # system:system 0660 and ueventd does not re-own devices it did not create.
+    chown root system /dev/ufs-bsg0
+    chmod 0660 /dev/ufs-bsg0
+
     # NFC
     mkdir /data/vendor/nfc 0770 nfc nfc
     chmod 0660 /dev/nq-nci
@@ -83,8 +94,12 @@ on boot
     chmod 0664 /sys/devices/virtual/touch/touch_dev/bump_sample_rate
 
 # charger
-on boot && property:ro.product.device=degas && property:ro.boot.hwc=GL
-    setprop persist.vendor.accelerate.charge false
+#
+# This block arrived from duchamp: degas is not one of the projects Xiaomi
+# disables accelerated charging on, and the property is persistent, so write
+# the default back explicitly once.
+on boot && property:ro.product.device=degas
+    setprop persist.vendor.accelerate.charge true
 
 service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service.mediatek
     override
@@ -99,3 +114,11 @@ service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service.mediatek
     task_profiles ProcessCapacityHigh HighPerformance
     onrestart restart audioserver
     socket audio_hw_socket seqpacket 0666 system system
+
+# Thermal scenario for mi_thermald. HyperOS feeds sconfig from PowerKeeper;
+# nothing does that here, so the daemon sits in its most conservative baseline
+# policy and clamps the CPU far below its maxima. Scenario 6 leaves the CPU
+# alone. The trigger must be boot_completed: mi_thermald only reacts to a
+# *change* of sconfig, and it establishes its watch later than "on boot".
+on property:sys.boot_completed=1
+    write /sys/class/thermal/thermal_message/sconfig 6

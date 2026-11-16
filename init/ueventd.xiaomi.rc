@@ -4,3 +4,12 @@ subsystem mi_display
     dirname /dev/mi_display
 
 /dev/mi_display/*         0666   root       graphics
+
+# Let the thermal HAL drive the cooling devices it is bound to. Without this
+# the nodes stay root-owned and the HAL fails every throttling request.
+/sys/devices/virtual/thermal/cooling_device*   cur_state   0664   system   system
+
+# The boot control HAL sends raw UFS commands through this node to switch the
+# active slot. Making root the owner lets it open the node without
+# CAP_DAC_OVERRIDE, which SELinux would deny.
+/dev/ufs-bsg0             0660   root       system
