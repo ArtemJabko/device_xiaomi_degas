@@ -4,4 +4,4 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/lineage_degas.mk
+    $(LOCAL_DIR)/evolution_degas.mk

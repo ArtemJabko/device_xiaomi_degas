@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <!-- Evolution X (Android 17, cnb) local manifest for Xiaomi 14T (degas).
+         Evolution X cnb is based on LineageOS lineage-24.0, so the platform
+         dependencies are the same pinned lineage-24.0 revisions used by the
+         degas LineageOS 24.0 tree.
+
+         Place as: .repo/local_manifests/evolution.xml   then  repo sync
+
+         Device and kernel trees are cloned manually:
+           git clone -b evolution-17 https://github.com/ArtemJabko/device_xiaomi_degas device/xiaomi/degas
+           git clone -b lineage-24.0 https://github.com/mt6897-degas/android_device_xiaomi_degas-kernel device/xiaomi/degas-kernel
+
+         Vendor blobs are NOT published: generate vendor/xiaomi/degas from an
+         OS3.0.306.0.WNEEUXM dump with device/xiaomi/degas/tools/extract-vendor.sh
+         (see the README). The old ArtemJabko/vendor_xiaomi_degas (OS3.0.4.0)
+         blobs only match the lineage-23.2 tree, NOT this one.
+    -->
+    <remote name="degas-lineage" fetch="https://github.com/LineageOS" />
+    <remote name="degas-dev" fetch="https://github.com/mt6897-degas" />
+
+    <project path="hardware/mediatek" name="android_hardware_mediatek"
+             remote="degas-lineage" revision="32bd412433ef0d58c3484769d9789987407627fc" />
+    <project path="hardware/xiaomi" name="android_hardware_xiaomi"
+             remote="degas-lineage" revision="fb0a2d51c741b4a6af3acc76a337aa4f3d7f9977" />
+    <project path="device/mediatek/sepolicy_vndr" name="android_device_mediatek_sepolicy_vndr"
+             remote="degas-lineage" revision="d76ed9b3f512decbb68f6641db86230aa595996e" />
+    <project path="device/xiaomi/degas-kernel" name="android_device_xiaomi_degas-kernel"
+             remote="degas-dev" revision="lineage-24.0" />
+</manifest>
