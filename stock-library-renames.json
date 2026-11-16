@@ -1,0 +1,69 @@
+{
+  "libraries": {
+    "lib_android_keymaster_keymint_utils.so": "lib_android_keymaster_keymint_utils-vendor.so",
+    "libaudio_aidl_conversion_common_ndk.so": "libaudio_aidl_conversion_common_ndk-vendor.so",
+    "libkeymint.so": "libkeymint-vendor.so",
+    "libkeymint_remote_prov_support.so": "libkeymint_remote_prov_support-vendor.so",
+    "libkeymint_support.so": "libkeymint_support-vendor.so",
+    "libmnl.so": "libmnl-vendor.so",
+    "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so": "vendor.mediatek.hardware.bluetooth.audio-V1-ndk-vendor.so",
+    "vendor.mediatek.hardware.bluetooth.audio@2.1.so": "vendor.mediatek.hardware.bluetooth.audio@2.1-vendor.so",
+    "vendor.mediatek.hardware.bluetooth.audio@2.2.so": "vendor.mediatek.hardware.bluetooth.audio@2.2-vendor.so",
+    "vendor.mediatek.hardware.mtkpower-V1-ndk.so": "vendor.mediatek.hardware.mtkpower-V1-ndk-vendor.so",
+    "vendor.mediatek.hardware.netdagent@1.0.so": "vendor.mediatek.hardware.netdagent@1.0-vendor.so",
+    "libcppbor_external.so": "libcppbor_external-degas-compat.so",
+    "libcppcose_rkp.so": "libcppcose_rkp-degas-compat.so",
+    "android.hardware.audio@7.1-util.so": "android.hardware.audio@7.1-util-degas-compat.so"
+  },
+  "consumers": {
+    "vendor/lib64/hw/android.hardware.soundtrigger3-impl.so": [
+      "libaudio_aidl_conversion_common_ndk.so"
+    ],
+    "vendor/lib64/hw/audio.primary.mediatek.so": [
+      "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+      "vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+      "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so"
+    ],
+    "vendor/lib64/vendor.mediatek.hardware.bluetooth.audio@2.2-vendor.so": [
+      "vendor.mediatek.hardware.bluetooth.audio@2.1.so"
+    ],
+    "vendor/lib64/libaimemc.so": [
+      "vendor.mediatek.hardware.mtkpower-V1-ndk.so"
+    ],
+    "vendor/bin/mnld": [
+      "libmnl.so"
+    ],
+    "vendor/bin/hw/android.hardware.security.keymint@3.0-service.mitee": [
+      "lib_android_keymaster_keymint_utils.so",
+      "libkeymint.so",
+      "libcppbor_external.so",
+      "libcppcose_rkp.so"
+    ],
+    "vendor/lib64/libkeymint-vendor.so": [
+      "lib_android_keymaster_keymint_utils.so",
+      "libcppbor_external.so"
+    ],
+    "odm/lib64/libmt_mitee.so": [
+      "lib_android_keymaster_keymint_utils.so",
+      "libkeymint.so",
+      "libkeymint_support.so",
+      "libkeymint_remote_prov_support.so"
+    ],
+    "vendor/lib64/libmtk-ril.so": [
+      "vendor.mediatek.hardware.netdagent@1.0.so"
+    ],
+    "vendor/lib64/libmtkmipc-ril.so": [
+      "vendor.mediatek.hardware.netdagent@1.0.so"
+    ],
+    "vendor/lib64/libkeymint_remote_prov_support-vendor.so": [
+      "libcppbor_external.so",
+      "libcppcose_rkp.so"
+    ],
+    "vendor/lib64/libcppcose_rkp-degas-compat.so": [
+      "libcppbor_external.so"
+    ],
+    "vendor/lib64/hw/android.hardware.audio@7.1-impl-mediatek.so": [
+      "android.hardware.audio@7.1-util.so"
+    ]
+  }
+}

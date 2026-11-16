@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: Apache-2.0
+cc_library_shared {
+    name: "libaudiotrack_degas_shim",
+    system_ext_specific: true,
+    compile_multilib: "64",
+    srcs: ["AudioTrackCompat.cpp"],
+    defaults: ["libaudioclient_client"],
+    header_libs: ["libmedia_headers"],
+    shared_libs: [
+        "libbinder",
+        "libutils",
+    ],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

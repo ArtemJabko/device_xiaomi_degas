@@ -1,0 +1,38 @@
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index af544ab..7ccf881 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -3840,6 +3840,9 @@ static int wpa_ver_supported(struct wpa_driver_nl80211_data *drv,
+ 	if (proto & WPA_PROTO_WPA)
+ 		ver |= NL80211_WPA_VERSION_1;
+ 	if (proto & WPA_PROTO_RSN) {
++#ifdef CONFIG_DRIVER_NL80211_MTK
++		ver |= NL80211_WPA_VERSION_2;
++#else
+ 		if (drv->chip_vendor_id != OUI_BRCM) {
+ 			/*
+ 			* NL80211_ATTR_SAE_PASSWORD is related and was added
+@@ -3853,6 +3856,7 @@ static int wpa_ver_supported(struct wpa_driver_nl80211_data *drv,
+ 		} else {
+ 			ver |= NL80211_WPA_VERSION_2;
+ 		}
++#endif
+ 		
+ 	}
+ 
+diff --git a/wpa_supplicant/Android.bp b/wpa_supplicant/Android.bp
+index 55f7ae8..db2c261 100644
+--- a/wpa_supplicant/Android.bp
++++ b/wpa_supplicant/Android.bp
+@@ -749,7 +749,10 @@ cc_defaults {
+         "-DCONFIG_DRIVER_NL80211",
+         // Because the original Android.mk will call hostapd's Android.mk first and it
+         // will make the flag share with wpa_supplicant, keep the original logic in hostapd.
+-    ] + select(soong_config_variable("wpa_supplicant_8", "board_wlan_device"), {
++    ] + select(soong_config_variable("wpa_supplicant_8", "board_wlan_mtk_gen4m"), {
++        true: ["-DCONFIG_DRIVER_NL80211_MTK"],
++        default: [],
++    }) + select(soong_config_variable("wpa_supplicant_8", "board_wlan_device"), {
+         "bcmdhd": ["-DCONFIG_DRIVER_NL80211_BRCM"],
+         "synadhd": ["-DCONFIG_DRIVER_NL80211_SYNA"],
+         "qcwcn": ["-DCONFIG_DRIVER_NL80211_QCA"],

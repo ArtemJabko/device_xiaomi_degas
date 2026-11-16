@@ -1,0 +1,117 @@
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index a19202f..ff3dcfb 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -3556,6 +3556,9 @@
+     <!-- When true, udfps vote is ignored. This feature is disabled by default. -->
+     <bool name="config_ignoreUdfpsVote">false</bool>
+ 
++    <!-- Fixed physical rate for an optical UDFPS session; 0 uses per-touch votes. -->
++    <integer name="config_udfpsRefreshRate">0</integer>
++
+     <!-- Controls if local secondary displays should be private or not. Value specified in the array
+          represents physical port address of each display and display in this list will be marked
+          as private.
+diff --git a/core/res/res/values/symbols.xml b/core/res/res/values/symbols.xml
+index f20a2b6..0d9fb3c 100644
+--- a/core/res/res/values/symbols.xml
++++ b/core/res/res/values/symbols.xml
+@@ -458,6 +458,7 @@
+   <java-symbol type="bool" name="config_allowPresentationOnInternalDisplay" />
+   <java-symbol type="bool" name="config_enableSelfKillRecoveryBetweenInternalDisplays" />
+   <java-symbol type="bool" name="config_ignoreUdfpsVote" />
++  <java-symbol type="integer" name="config_udfpsRefreshRate" />
+   <java-symbol type="bool" name="config_enableProximityService" />
+   <java-symbol type="bool" name="config_enableVirtualDeviceManager" />
+   <java-symbol type="array" name="config_localPrivateDisplayPorts" />
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index f189327..b5e95f4 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -195,6 +195,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+     @NonNull private final MSDLPlayer mMsdlPlayer;
+     private final Lazy<SceneInteractor> mSceneInteractorLazy;
+     private final boolean mIgnoreRefreshRate;
++    private final boolean mHoldRefreshRateWhileShown;
++    @Nullable private UdfpsDisplayModeProvider mHeldDisplayMode;
+     private final KeyguardTransitionInteractor mKeyguardTransitionInteractor;
+ 
+     // Currently the UdfpsController supports a single UDFPS sensor. If devices have multiple
+@@ -738,6 +740,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         mUserActivityNotifier = userActivityNotifier;
+         mIgnoreRefreshRate = mContext.getResources()
+                     .getBoolean(R.bool.config_ignoreUdfpsVote);
++        mHoldRefreshRateWhileShown = !mIgnoreRefreshRate && mContext.getResources()
++                    .getInteger(R.integer.config_udfpsRefreshRate) > 0;
+         // The fingerprint manager is queried for UDFPS before this class is constructed, so the
+         // fingerprint manager should never be null.
+         mFingerprintManager = checkNotNull(fingerprintManager);
+@@ -872,6 +876,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+             mOnFingerDown = false;
+             mAttemptedToDismissKeyguard = false;
+             mOrientationListener.enable();
++            if (mHoldRefreshRateWhileShown && mUdfpsDisplayMode != null && isOptical()) {
++                mHeldDisplayMode = mUdfpsDisplayMode;
++                mHeldDisplayMode.enable(() -> { });
++            }
+             if (mFingerprintManager != null) {
+                 mFingerprintManager.onUdfpsUiEvent(FingerprintManager.UDFPS_UI_OVERLAY_SHOWN,
+                         overlay.getRequestId(), mSensorProps.sensorId);
+@@ -891,6 +899,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+                 onFingerUp(mOverlay.getRequestId(), oldView);
+             }
+             final boolean removed = mOverlay.hide();
++            if (mHeldDisplayMode != null) {
++                mHeldDisplayMode.disable(() -> { });
++                mHeldDisplayMode = null;
++            }
+             mKeyguardViewManager.hideAlternateBouncer(
+                     /* updateScrim */ true,
+                     /* clearDismissAction */ false
+@@ -1117,7 +1129,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+ 
+         final View view = mOverlay.getTouchOverlay();
+         if (isOptical() && view instanceof UdfpsTouchOverlay udfpsView) {
+-            if (mIgnoreRefreshRate) {
++            if (mIgnoreRefreshRate || mHoldRefreshRateWhileShown) {
+                 dispatchOnUiReady(requestId);
+             } else {
+                 udfpsView.configureDisplay(() -> dispatchOnUiReady(requestId));
+diff --git a/services/core/java/com/android/server/display/mode/DisplayModeDirector.java b/services/core/java/com/android/server/display/mode/DisplayModeDirector.java
+index a633547..d99b92d 100644
+--- a/services/core/java/com/android/server/display/mode/DisplayModeDirector.java
++++ b/services/core/java/com/android/server/display/mode/DisplayModeDirector.java
+@@ -2905,14 +2905,31 @@ public class DisplayModeDirector {
+         private void updateVoteLocked(int displayId, boolean enabled, int votePriority) {
+             final Vote vote;
+             if (enabled) {
+-                float maxRefreshRate = DisplayModeDirector.this.getMaxRefreshRateLocked(displayId);
+-                vote = Vote.forPhysicalRefreshRates(maxRefreshRate, maxRefreshRate);
++                float refreshRate = votePriority == Vote.PRIORITY_UDFPS
++                        ? getUdfpsRefreshRateLocked(displayId)
++                        : DisplayModeDirector.this.getMaxRefreshRateLocked(displayId);
++                vote = Vote.forPhysicalRefreshRates(refreshRate, refreshRate);
+             } else {
+                 vote = null;
+             }
+             mVotesStorage.updateVote(displayId, votePriority, vote);
+         }
+ 
++        @GuardedBy("mLock")
++        private float getUdfpsRefreshRateLocked(int displayId) {
++            final int configured = mContext.getResources()
++                    .getInteger(R.integer.config_udfpsRefreshRate);
++            final Display.Mode[] modes = mSupportedModesByDisplay.get(displayId);
++            if (configured > 0 && modes != null) {
++                for (Display.Mode mode : modes) {
++                    if (Math.abs(mode.getRefreshRate() - configured) < 1f) {
++                        return mode.getRefreshRate();
++                    }
++                }
++            }
++            return DisplayModeDirector.this.getMaxRefreshRateLocked(displayId);
++        }
++
+         @GuardedBy("mLock")
+         void dumpLocked(PrintWriter pw) {
+             pw.println("  UdfpsObserver");

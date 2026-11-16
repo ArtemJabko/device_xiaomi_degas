@@ -1,12 +1,32 @@
 on post-fs-data
-    # Xiaomi's collision telemetry writer can emit empty lines indefinitely and
-    # citsensorservice parses the whole file on start, pinning a core at 100%
-    # (SoC at 90 C). Nothing on LineageOS reads these records, and /mnt/vendor/
-    # persist survives reflash and factory reset, so truncate it every boot.
+    # Xiaomi's collision telemetry (sensor-dfx-m18-collision) appends one record
+    # per detected drop to this file, and citsensorservice parses the whole thing
+    # into memory when it starts. On a tester's phone the writer was emitting
+    # EMPTY lines instead of records until the file reached 27713536 bytes --
+    # 27.7 million newlines and not one printable character -- at which point the
+    # service's mCollision thread burned 100% of a core forever: 17.7 hours of CPU
+    # in a single boot, SoC at 90 C. Emptying the file dropped it to 0.0% and the
+    # SoC to 50 C within seconds. Verified on hardware 2026-08-02.
+    #
+    # Nothing on LineageOS reads these records -- they exist for Xiaomi's warranty
+    # diagnostics -- so truncating them every boot costs nothing and bounds the
+    # damage to one boot's worth of growth.
+    #
+    # This has to ship rather than be a support instruction: /mnt/vendor/persist
+    # survives both reflashing and a factory reset, so an affected phone can never
+    # recover on its own.
+    #
+    # persist.vendor.debug.collision.dfx=false does NOT help -- tested, the thread
+    # spins with the feature off just the same.
     write /mnt/vendor/persist/sensors/collisionData.txt ""
 
-    # The boot control HAL opens /dev/ufs-bsg0 as root, but the node comes up
-    # system:system 0660 and ueventd does not re-own devices it did not create.
+    # The boot control HAL needs to open /dev/ufs-bsg0 to switch the active slot,
+    # and it runs as root while the node comes up system:system 0660 -- see the
+    # rule in ueventd.xiaomi.rc for the full story. That rule is correct (a manual
+    # `echo add > /sys/class/bsg/ufs-bsg0/uevent` does flip the owner to root) but
+    # it does not fire at boot: the node already exists by the time ueventd applies
+    # our rules, and it does not re-own devices it did not create. So set it here
+    # as well. The HAL only touches the node during an update, long after this.
     chown root system /dev/ufs-bsg0
     chmod 0660 /dev/ufs-bsg0
 
@@ -75,50 +95,39 @@ on boot
     chown system system /sys/class/flashlight_core/flashlight/torchbrightness
     chmod 0664 /sys/class/flashlight_core/flashlight/torchbrightness
 
-    # Xiaomi touch
-    chown system system /dev/xiaomi-touch
-    chmod 0664 /dev/xiaomi-touch
-    chown system system /sys/class/touch/touch_dev/fod_longpress_gesture_enabled
-    chmod 0664 /sys/class/touch/touch_dev/fod_longpress_gesture_enabled
-    chown system system /sys/class/touch/touch_dev/fod_longpress_gesture_state
-    chmod 0664 /sys/class/touch/touch_dev/fod_longpress_gesture_state
-    chown system system /sys/class/touch/touch_dev/gesture_single_tap_enabled
-    chmod 0664 /sys/class/touch/touch_dev/gesture_single_tap_enabled
-    chown system system /sys/class/touch/touch_dev/gesture_single_tap_state
-    chmod 0664 /sys/class/touch/touch_dev/gesture_single_tap_state
-    chown system system /sys/class/touch/touch_dev/gesture_double_tap_enabled
-    chmod 0664 /sys/class/touch/touch_dev/gesture_double_tap_enabled
-    chown system system /sys/class/touch/touch_dev/gesture_double_tap_state
-    chmod 0664 /sys/class/touch/touch_dev/gesture_double_tap_state
-    chown system system /sys/devices/virtual/touch/touch_dev/bump_sample_rate
-    chmod 0664 /sys/devices/virtual/touch/touch_dev/bump_sample_rate
-
-# charger
+# Charger.
 #
-# This block arrived from duchamp: degas is not one of the projects Xiaomi
-# disables accelerated charging on, and the property is persistent, so write
-# the default back explicitly once.
+# Restore the persistent default, including devices that ran earlier builds.
+# The guarded batterysecret extraction fix also preserves the degas acceleration
+# feature byte; otherwise that daemon would immediately force this back to false.
+# Charger/battery authentication and kernel thermal/current limits stay stock.
 on boot && property:ro.product.device=degas
     setprop persist.vendor.accelerate.charge true
 
-service vendor.audio-hal /vendor/bin/hw/android.hardware.audio.service.mediatek
-    override
-    class hal
-    user audioserver
-    # media gid needed for /dev/fm (radio) and for /data/misc/media (tee)
-    group audio camera drmrpc inet media mediadrm net_bt net_bt_admin net_bw_acct wakelock context_hub system
-    capabilities BLOCK_SUSPEND SYS_NICE
-    # setting RLIMIT_RTPRIO allows binder RT priority inheritance
-    rlimit rtprio 10 10
-    ioprio rt 4
-    task_profiles ProcessCapacityHigh HighPerformance
-    onrestart restart audioserver
-    socket audio_hw_socket seqpacket 0666 system system
-
-# Thermal scenario for mi_thermald. HyperOS feeds sconfig from PowerKeeper;
-# nothing does that here, so the daemon sits in its most conservative baseline
-# policy and clamps the CPU far below its maxima. Scenario 6 leaves the CPU
-# alone. The trigger must be boot_completed: mi_thermald only reacts to a
-# *change* of sconfig, and it establishes its watch later than "on boot".
+# Thermal scenario for mi_thermald.
+#
+# Xiaomi's thermal daemon picks its throttling policy from the scenario in
+# thermal_message/sconfig, which HyperOS feeds from PowerKeeper. Nothing does
+# that here, so sconfig stays at -1 forever and the daemon sits in its most
+# conservative baseline policy: it clamps the CPU freq_qos from a *board*
+# temperature of 33 C and settles at 1.4/2.3/2.4 GHz against hardware maxima of
+# 2.2/3.2/3.35, while the die is only at 81 C. That costs a third of the CPU
+# benchmark score. Every policy-backed scenario throttles just as hard; 6 is the
+# one that leaves the CPU alone. The die then plateaus at 86-88 C under a
+# sustained all-core load, against a 119 C crit trip.
+#
+# Two things about the trigger, both learned the hard way:
+#
+# It cannot be `on property:init.svc.mi_thermald=running`. This file is in
+# /vendor, so *vendor_init* executes it, and vendor_init may not read
+# init.svc.* (init_service_status_private_prop is core-only). The trigger then
+# silently never fires; the only trace is one avc denial in dmesg.
+#
+# It cannot be `on boot` either. mi_thermald only reacts to the inotify event
+# for a *change* of sconfig, and at `on boot` it has not established its watch
+# yet - the file ends up reading 6 while the daemon still runs the baseline
+# policy, which looks exactly like the fix working but does not. By
+# sys.boot_completed the daemon is long up, and this is the only writer, so the
+# -1 -> 6 transition is a real event it sees.
 on property:sys.boot_completed=1
     write /sys/class/thermal/thermal_message/sconfig 6

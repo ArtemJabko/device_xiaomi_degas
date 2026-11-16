@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: Apache-2.0
+package {
+    default_applicable_licenses: ["degas_libbase_v34_license"],
+}
+
+license {
+    name: "degas_libbase_v34_license",
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD",
+    ],
+    license_text: ["NOTICE.libbase.txt"],
+}
+
+cc_prebuilt_library_shared {
+    name: "libbase-degas-v34",
+    vendor: true,
+    compile_multilib: "64",
+    srcs: ["prebuilt/arm64/libbase-degas-v34.so"],
+    strip: { none: true },
+    shared_libs: ["liblog", "libc++", "libc", "libm", "libdl"],
+}

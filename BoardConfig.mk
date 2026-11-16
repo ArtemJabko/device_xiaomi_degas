@@ -19,15 +19,19 @@ TARGET_NO_BOOTLOADER := true
 # Display
 TARGET_SCREEN_DENSITY := 480
 
+# Run HWUI on Vulkan (emits ro.hwui.use_vulkan, which the build otherwise leaves
+# empty = GL). Pairs with debug.renderengine.backend=skiavk in vendor.prop: with
+# BOTH on Vulkan the notification shade's blur fits the 144Hz frame budget
+# (12% janky frames vs 26% on GL) - measurement table in vendor.prop.
+TARGET_USES_VULKAN := true
+
 # HIDL
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
     hardware/mediatek/vintf/mediatek_framework_compatibility_matrix.xml \
     hardware/xiaomi/vintf/xiaomi_framework_compatibility_matrix.xml \
     $(DEVICE_PATH)/configs/vintf/degas_framework_compatibility_matrix.xml
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/manifest.xml
-
-# Allow ELF prebuilts in PRODUCT_COPY_FILES (restored vendor blobs)
-BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+ODM_MANIFEST_FILES += $(DEVICE_PATH)/configs/vintf/touchfeature.xml
 
 # Kernel
 BOARD_DTB_OFFSET := 0x07c88000
@@ -60,29 +64,27 @@ BOARD_VENDOR_RAMDISK_KERNEL_MODULES_LOAD := $(strip $(shell cat $(DEVICE_PATH)/v
 BOARD_VENDOR_RAMDISK_RECOVERY_KERNEL_MODULES_LOAD := $(strip $(shell cat $(DEVICE_PATH)/vendor_ramdisk.modules.load.recovery))
 
 TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/$(BOARD_KERNEL_IMAGE_NAME)
-TARGET_PREBUILT_KERNEL_HEADERS := $(KERNEL_PATH)/kernel-uapi-headers.tar.gz
 BOARD_PREBUILT_DTBIMAGE_DIR := $(KERNEL_PATH)/dtb
-
-# No kernel source synced (prebuilt-kernel device). A local stub at
-# kernel/xiaomi/degas satisfies the kernel-headers generator; force the
-# prebuilt kernel even though the stub source dir exists.
-TARGET_KERNEL_CONFIG := degas_prebuilt_stub
-TARGET_FORCE_PREBUILT_KERNEL := true
+BOARD_PREBUILT_DTBOIMAGE := $(KERNEL_PATH)/dtbo.img
 
 BOARD_KERNEL_MODULE_DIR := $(KERNEL_PATH)/modules
-BOARD_SYSTEM_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/,$(BOARD_SYSTEM_KERNEL_MODULES_LOAD))
-BOARD_VENDOR_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/,$(BOARD_VENDOR_KERNEL_MODULES_LOAD))
+# Keep the factory module signatures intact when copying prebuilts.
+BOARD_DO_NOT_STRIP_VENDOR_MODULES := true
+BOARD_DO_NOT_STRIP_VENDOR_RAMDISK_MODULES := true
+BOARD_SYSTEM_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/system/,$(BOARD_SYSTEM_KERNEL_MODULES_LOAD))
+BOARD_VENDOR_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/vendor/,$(BOARD_VENDOR_KERNEL_MODULES_LOAD))
 ALL_VENDOR_RAMDISK_MODULES := $(sort $(BOARD_VENDOR_RAMDISK_KERNEL_MODULES_LOAD) $(BOARD_VENDOR_RAMDISK_RECOVERY_KERNEL_MODULES_LOAD))
-BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/,$(ALL_VENDOR_RAMDISK_MODULES))
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(addprefix $(BOARD_KERNEL_MODULE_DIR)/vendor_ramdisk/,$(ALL_VENDOR_RAMDISK_MODULES))
 
 BOARD_VENDOR_KERNEL_MODULES += \
-    $(BOARD_KERNEL_MODULE_DIR)/gps_drv_dl_v051.ko \
-    $(BOARD_KERNEL_MODULE_DIR)/gps_pwr.ko \
-    $(BOARD_KERNEL_MODULE_DIR)/gps_scp.ko
+    $(BOARD_KERNEL_MODULE_DIR)/vendor/gps_drv_dl_v051.ko \
+    $(BOARD_KERNEL_MODULE_DIR)/vendor/gps_pwr.ko \
+    $(BOARD_KERNEL_MODULE_DIR)/vendor/gps_scp.ko
 
 # Partitions
 AB_OTA_PARTITIONS += \
     boot \
+    dtbo \
     init_boot \
     odm \
     odm_dlkm \
@@ -98,12 +100,15 @@ AB_OTA_PARTITIONS += \
     vendor_dlkm
 
 BOARD_USES_METADATA_PARTITION := true
+BOARD_USES_SYSTEM_DLKMIMAGE := true
+BOARD_USES_VENDOR_DLKMIMAGE := true
+BOARD_USES_ODM_DLKMIMAGE := true
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
 BOARD_DTBOIMG_PARTITION_SIZE := 8388608
 BOARD_FLASH_BLOCK_SIZE := 4096
 BOARD_INIT_BOOT_IMAGE_PARTITION_SIZE := 8388608
-BOARD_SUPER_PARTITION_SIZE := 9126805504
+BOARD_SUPER_PARTITION_SIZE := 9663676416
 BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864
 
 BOARD_SUPER_PARTITION_GROUPS := xiaomi_dynamic_partitions
@@ -158,7 +163,6 @@ SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/private
 BOARD_AVB_ENABLE := true
 BOARD_AVB_KEY_PATH := external/avb/test/data/testkey_rsa4096.pem
 BOARD_AVB_ALGORITHM := SHA256_RSA4096
-# Disable hashtree verification in top vbmeta, chain descriptors stay signed.
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --set_hashtree_disabled_flag
 BOARD_AVB_BOOT_KEY_PATH := external/avb/test/data/testkey_rsa4096.pem
 BOARD_AVB_BOOT_ALGORITHM := SHA256_RSA4096
@@ -209,3 +213,10 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 
 # Inherit the proprietary files
 include vendor/xiaomi/degas/BoardConfigVendor.mk
+
+# gen4m cannot parse NL80211_WPA_VERSION_3 in connect (breaks WPA3/SAE);
+# needs the CONFIG_DRIVER_NL80211_MTK exemption in our wpa_supplicant fork.
+# The namespace MUST be wpa_supplicant_8: the wpa_supplicant/nl80211_driver
+# variable only feeds wpa_supplicant_cflags_defaults, which no module uses, so
+# the guard silently never reaches the vendor supplicant binary.
+$(call soong_config_set_bool,wpa_supplicant_8,board_wlan_mtk_gen4m,true)

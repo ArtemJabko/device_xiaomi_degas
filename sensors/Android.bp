@@ -1,33 +1,36 @@
 //
-// Copyright (C) 2024 The LineageOS Project
-//
+// SPDX-FileCopyrightText: The LineageOS Project
 // SPDX-License-Identifier: Apache-2.0
 //
 
-cc_binary {
-    name: "sensor-notifier",
+cc_library_shared {
+    name: "sensors.udfps.degas",
     vendor: true,
-
-    init_rc: ["sensor-notifier.rc"],
-
-    srcs: [
-        "main.cpp",
-        "notifiers/AodNotifier.cpp",
-        "notifiers/NonUiNotifier.cpp",
-        "SensorNotifier.cpp",
-        "utils/SensorNotifierUtils.cpp",
+    srcs: ["UdfpsSensorSubHal.cpp"],
+    compile_multilib: "64",
+    cflags: [
+        "-Wall",
+        "-Werror",
     ],
-
-    local_include_dirs: ["include"],
-
-    shared_libs: [
-        "libbase",
-        "libhidlbase",
-        "libutils",
-        "android.frameworks.sensorservice@1.0",
-    ],
-
     header_libs: [
-        "prebuilt_kernel_headers",
+        "android.hardware.sensors@2.0-multihal.header",
+        "android.hardware.sensors@2.X-shared-utils",
+    ],
+    shared_libs: [
+        "android.hardware.sensors@1.0",
+        "android.hardware.sensors@2.0",
+        "android.hardware.sensors@2.0-ScopedWakelock",
+        "android.hardware.sensors@2.1",
+        "libcutils",
+        "libfmq",
+        "libhardware",
+        "libhidlbase",
+        "liblog",
+        "libpower",
+        "libutils",
+    ],
+    static_libs: [
+        "android.hardware.sensors@1.0-convert",
+        "android.hardware.sensors@2.X-multihal",
     ],
 }

@@ -1,0 +1,190 @@
+{
+  "branch": "lineage-24.0",
+  "files": [
+    {
+      "file": "scripts/check_boot_jars/package_allowed_list.txt",
+      "project": "build/soong",
+      "sha256": "797ddbcba134384efd602a1cf90f4bfa299c9074f1f4c6e1a6913015d614b53a"
+    },
+    {
+      "file": "src/drivers/driver_nl80211.c",
+      "project": "external/wpa_supplicant_8",
+      "sha256": "9fe22ba30607868c2cab415dd15a774f16472604da2f8552b7be863a93755bfa"
+    },
+    {
+      "file": "wpa_supplicant/Android.bp",
+      "project": "external/wpa_supplicant_8",
+      "sha256": "1cbbe04d5b120ef473fed73ed44e2c5c36f6849735239fa24146d304a6fc6894"
+    },
+    {
+      "file": "core/res/res/values/config.xml",
+      "project": "frameworks/base",
+      "sha256": "54170561aad5c4f73a720a3f1426e7e29a0d0f1bfb312b070abf7b08763181df"
+    },
+    {
+      "file": "core/res/res/values/dimens.xml",
+      "project": "frameworks/base",
+      "sha256": "d19aa609fe63c6e9626c671fb6e92a765327d2e08c377cd2e303cbdad117cd45"
+    },
+    {
+      "file": "core/res/res/values/symbols.xml",
+      "project": "frameworks/base",
+      "sha256": "5abf985a51b4b078ad50458b87a3138a8a5060071fc01d08ec3fdeb64f80ac0d"
+    },
+    {
+      "file": "packages/SystemUI/res/values/config.xml",
+      "project": "frameworks/base",
+      "sha256": "66f5c10a5207734b3fc955fbea7c048afdd029460d8f7f5c40d20d189e4a0df8"
+    },
+    {
+      "file": "packages/SystemUI/res/values/dimens.xml",
+      "project": "frameworks/base",
+      "sha256": "5211405f4ff8502ca0c6ae1e26c3c38d349b97c45b5dc42275944573b9591760"
+    },
+    {
+      "file": "packages/SystemUI/res/values/lineage_config.xml",
+      "project": "frameworks/base",
+      "sha256": "2434e668a93ccb6889d5e0ed904e32651531cc037a882424bd86692cfa9d6eca"
+    },
+    {
+      "file": "packages/SystemUI/res/values/lineage_dimens.xml",
+      "project": "frameworks/base",
+      "sha256": "568d31772b7470f065078ebdac6f109e5625bebb98cf77a592e87429003fc1da"
+    },
+    {
+      "file": "packages/SystemUI/res/values/shade_dimens.xml",
+      "project": "frameworks/base",
+      "sha256": "2b6ecdbd6379dbf74f04b1d10ece6b0bb47fa1c018b4897424a3b3d2bad2399d"
+    },
+    {
+      "file": "packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java",
+      "project": "frameworks/base",
+      "sha256": "8bbcc6b8975d0e585927341e99f6d8bf3604ed54386363a12e70ccd50217a1fd"
+    },
+    {
+      "file": "services/core/java/com/android/server/display/mode/DisplayModeDirector.java",
+      "project": "frameworks/base",
+      "sha256": "1f726bdfc30e755712a5e4e34625cd3f9ca5c4e0dca6d19737548f1508035171"
+    },
+    {
+      "file": "services/surfaceflinger/DisplayDevice.h",
+      "project": "frameworks/native",
+      "sha256": "b2c04f7066e85080e56b32cd24255c0164036580e3b5bc8f7ae5f941f76013dd"
+    },
+    {
+      "file": "services/surfaceflinger/Scheduler/Scheduler.cpp",
+      "project": "frameworks/native",
+      "sha256": "3b5ff2080300b3731ef6bbbf2b56dba40352457e1244801a60efd356834416bd"
+    },
+    {
+      "file": "services/surfaceflinger/SurfaceFlinger.cpp",
+      "project": "frameworks/native",
+      "sha256": "2229ffc74d3baa34eead6ef4ba1a96569f33390511fc1b088180ee879a0ea46e"
+    },
+    {
+      "file": "res/values/arrays.xml",
+      "project": "packages/apps/Settings",
+      "sha256": "358b9c38a7f798620c446992ceffa012108a4b406275b54f0631a6de11758c2f"
+    },
+    {
+      "file": "res/values/config.xml",
+      "project": "packages/apps/Settings",
+      "sha256": "376ee65bc7a51e42cf2d20492648e38e9f47a62629078c3eb3f710658f0832b3"
+    },
+    {
+      "file": "res/values/integers.xml",
+      "project": "packages/apps/Settings",
+      "sha256": "2da8e5a5bddf70900c9fe0489e658688ace3312147320f9934b71452a9f51b63"
+    },
+    {
+      "file": "res/values/lineage_config.xml",
+      "project": "packages/apps/Settings",
+      "sha256": "3042689fb0d225f8fc8064d08fd73224653f57c54b57d7f81d09da4cf6aae677"
+    },
+    {
+      "file": "config/BoardConfigReservedSize.mk",
+      "project": "vendor/lineage",
+      "sha256": "5e07b9f1190304f0f3f3b02cf210707c28014795e1a154129702ca5640722492"
+    },
+    {
+      "file": "config/common.mk",
+      "project": "vendor/lineage",
+      "sha256": "5798ba088072a162e2df3e3327c0ebcc6678c37e2b298c5c8bc2dd4399ccf2e4"
+    },
+    {
+      "file": "config/common_full_phone.mk",
+      "project": "vendor/lineage",
+      "sha256": "09776810806c88e97f01eb6e225324428cd4a8cf2626acebabc9560f32cb9855"
+    }
+  ],
+  "manifest_repository": "LineageOS/android",
+  "manifest_revision": "913c6baa35ffa32be9ae33368cac69dbec6ead4b",
+  "overlay_resource_names_verified": 68,
+  "projects": {
+    "build/make": {
+      "repository": "LineageOS/android_build",
+      "revision": "90d006387398ae6899145e6531a304500cfa0f70"
+    },
+    "build/soong": {
+      "repository": "LineageOS/android_build_soong",
+      "revision": "a528a88bd553d2a449ad9338a3e944b89a164971"
+    },
+    "device/mediatek/sepolicy_vndr": {
+      "repository": "LineageOS/android_device_mediatek_sepolicy_vndr",
+      "revision": "d76ed9b3f512decbb68f6641db86230aa595996e"
+    },
+    "external/wpa_supplicant_8": {
+      "repository": "LineageOS/android_external_wpa_supplicant_8",
+      "revision": "4d70ee052a9f65038a24ec7ea2f2bb3f92b17277"
+    },
+    "frameworks/base": {
+      "repository": "LineageOS/android_frameworks_base",
+      "revision": "4b252a1f5f128f24ea29b03457e8f903a6f19740"
+    },
+    "frameworks/native": {
+      "repository": "LineageOS/android_frameworks_native",
+      "revision": "a96adf2c6e62dbb22299cd83bbb9ea4bc569e985"
+    },
+    "hardware/google/interfaces": {
+      "repository": "LineageOS/android_hardware_google_interfaces",
+      "revision": "17741d228def813f7a1c03003b2c87f0d0e32b93"
+    },
+    "hardware/google/pixel": {
+      "repository": "LineageOS/android_hardware_google_pixel",
+      "revision": "8bd3c71cf2be40cfbe8f5a4b9bf5574ee9fbc624"
+    },
+    "hardware/lineage/compat": {
+      "repository": "LineageOS/android_hardware_lineage_compat",
+      "revision": "4865929e480ba8a3e5ec889374d82bd760b3c893"
+    },
+    "hardware/lineage/interfaces": {
+      "repository": "LineageOS/android_hardware_lineage_interfaces",
+      "revision": "4f6225db0d3c8cda1f59641fe0d7e53bd5e6449a"
+    },
+    "hardware/mediatek": {
+      "repository": "LineageOS/android_hardware_mediatek",
+      "revision": "32bd412433ef0d58c3484769d9789987407627fc"
+    },
+    "hardware/xiaomi": {
+      "repository": "LineageOS/android_hardware_xiaomi",
+      "revision": "fb0a2d51c741b4a6af3acc76a337aa4f3d7f9977"
+    },
+    "packages/apps/Settings": {
+      "repository": "LineageOS/android_packages_apps_Settings",
+      "revision": "31b1a9f1cab9638bc6af9f4e6412fbf3b3a7947a"
+    },
+    "tools/extract-utils": {
+      "repository": "LineageOS/android_tools_extract-utils",
+      "revision": "78ba5d58c4b06712e18bb387a2a72eac8fbc8d70"
+    },
+    "vendor/lineage": {
+      "repository": "LineageOS/android_vendor_lineage",
+      "revision": "5a1814d916321aecb72d60d13b5e52bc719251bd"
+    },
+    "vendor/qcom/opensource/vibrator": {
+      "repository": "LineageOS/android_vendor_qcom_opensource_vibrator",
+      "revision": "97d88ab231d84ba0b5549e6d6148522d6d73ee24"
+    }
+  },
+  "verification_scope": "Pinned upstream files touched by the platform patches and selected common configuration files; not a full Android checkout or build."
+}

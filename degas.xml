@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <!-- LineageOS 24.0 dependencies. Copy local device/kernel trees separately.
+         Generate vendor from EEA stock: no unpublished repository is declared.
+         LineageOS already supplies compat/interfaces, Google pixel,
+         extract-utils and qcom vibrator; do not duplicate them. -->
+    <remote name="degas-lineage" fetch="https://github.com/LineageOS" />
+    <project path="hardware/mediatek" name="android_hardware_mediatek"
+             remote="degas-lineage" revision="32bd412433ef0d58c3484769d9789987407627fc" />
+    <project path="hardware/xiaomi" name="android_hardware_xiaomi"
+             remote="degas-lineage" revision="fb0a2d51c741b4a6af3acc76a337aa4f3d7f9977" />
+    <project path="device/mediatek/sepolicy_vndr" name="android_device_mediatek_sepolicy_vndr"
+             remote="degas-lineage" revision="d76ed9b3f512decbb68f6641db86230aa595996e" />
+</manifest>

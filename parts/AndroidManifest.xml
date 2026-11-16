@@ -12,6 +12,13 @@
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_SURFACE_FLINGER" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CONNECTIVITY_USE_RESTRICTED_NETWORKS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PRECISE_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
 
     <application
         android:label="@string/app_name"
@@ -34,6 +41,21 @@
         <service
             android:name=".display.ColorService"
             android:permission="ColorService">
+        </service>
+
+        <service
+            android:name=".display.AodService"
+            android:permission="AodService">
+        </service>
+
+        <service
+            android:name=".telephony.ImsHealService"
+            android:permission="ImsHealService">
+        </service>
+
+        <service
+            android:name=".touch.TouchGestureService"
+            android:permission="TouchGestureService">
         </service>
     </application>
 </manifest>

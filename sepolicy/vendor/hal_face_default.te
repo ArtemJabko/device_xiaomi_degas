@@ -1,0 +1,33 @@
+# Xiaomi's mifaced serves the standard android.hardware.biometrics.face AIDL, so it
+# runs in AOSP's hal_face_default domain (see file_contexts). Stock labels it with a
+# private hal_miface_default type; reusing the AOSP domain gets the whole face HAL
+# policy for free and only the Xiaomi-specific accesses have to be added here.
+
+# init.miface.rc creates /data/vendor/face
+allow hal_face_default face_vendor_data_file:dir rw_dir_perms;
+allow hal_face_default face_vendor_data_file:file create_file_perms;
+
+# libmiface links libcamera2ndk_vendor, which reaches the camera through the
+# framework camera service, not through camera_device - so hal_client_domain(..,
+# hal_camera) is both wrong and forbidden by a neverallow in
+# system/sepolicy/private/hal_camera.te. These are the accesses the HAL actually
+# asked for at runtime.
+allow hal_face_default fwk_camera_service:service_manager find;
+binder_call(hal_face_default, cameraserver);
+# Native camera device/status callbacks run in mifaced's process. The client
+# call above permits reverse binder transfer, but does not permit reverse call.
+binder_call(cameraserver, hal_face_default)
+# CameraService reads its native client's /proc entry for camera attribution.
+allow cameraserver hal_face_default:dir search;
+allow cameraserver hal_face_default:file r_file_perms;
+# The vendor NDK preview and AImageReader use HIDL window tokens and gralloc.
+allow hal_face_default hidl_token_hwservice:hwservice_manager find;
+hal_client_domain(hal_face_default, hal_graphics_allocator)
+get_prop(hal_face_default, camera_config_prop)
+
+# TEE-backed template storage. The node mifaced actually opens is /dev/tee0,
+# labelled mitee_client_device (same as hal_mlipay_default) - without this the
+# HAL takes SIGSEGV in its faceWorkBMF thread on every start, proven by the
+# crash disappearing under setenforce 0.
+allow hal_face_default tee_device:chr_file rw_file_perms;
+allow hal_face_default mitee_client_device:chr_file rw_file_perms;

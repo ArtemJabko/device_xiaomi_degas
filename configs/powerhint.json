@@ -543,6 +543,36 @@
       "PowerHint": "EXPENSIVE_RENDERING",
       "Type": "EndHint",
       "Value": "INTERACTION"
+    },
+    {
+      "PowerHint": "DISPLAY_INACTIVE",
+      "Type": "EndHint",
+      "Value": "INTERACTION"
+    },
+    {
+      "PowerHint": "DISPLAY_INACTIVE",
+      "Type": "EndHint",
+      "Value": "LAUNCH"
+    },
+    {
+      "PowerHint": "DISPLAY_INACTIVE",
+      "Type": "EndHint",
+      "Value": "EXPENSIVE_RENDERING"
+    },
+    {
+      "PowerHint": "DEVICE_IDLE",
+      "Type": "EndHint",
+      "Value": "INTERACTION"
+    },
+    {
+      "PowerHint": "DEVICE_IDLE",
+      "Type": "EndHint",
+      "Value": "LAUNCH"
+    },
+    {
+      "PowerHint": "DEVICE_IDLE",
+      "Type": "EndHint",
+      "Value": "EXPENSIVE_RENDERING"
     }
   ]
 }

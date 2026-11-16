@@ -65,10 +65,57 @@
     <integer name="config_screenBrightnessDoze">5</integer>
 
     <!-- Float counterpart of config_screenBrightnessDoze - DisplayPowerController
-         reads THIS one, the integer above is only a legacy fallback. 5/255 lands
-         at dbv ~336, comfortably inside the panel's first local-HBM bucket, so
-         the fingerprint is still lit while dozing. -->
+         reads THIS one, the integer above is only a legacy fallback.
+         0 makes the settled AOD brighter - the luminance then comes purely from
+         the DDIC's own AOD mode (mi_display doze_brightness) and no
+         backlight value is written on top of it. But 0 costs two real bugs, so
+         it is deliberately non-zero for now:
+
+         - Entering AOD from the lock screen, DozeScreenState holds the display
+           in STATE_ON for ENTER_DOZE_DELAY (4 s) so the lock->AOD animation is
+           visible, and asks for this brightness while it does. At 0 that window
+           is simply black, which is the "screen goes black, AOD shows up a
+           couple of seconds later" complaint.
+         - The panel refuses MI_DISP_IOCTL_SET_LOCAL_HBM below bl_level 15
+           (mi_disp_panel_send_lhbm buckets: 15..1308 / 1309..11467 /
+           11468..16383), and at 0 the level sits at 1 - so the fingerprint is
+           never lit and unlock from AOD only works in the entry window where the
+           backlight has not dropped yet.
+
+         5/255 matches config_screenBrightnessDoze above and lands at dbv ~336,
+         comfortably inside the first LHBM bucket. The settled AOD is dimmer than
+         with 0; that is accepted until brightness is driven at the DDIC level
+         through displayfeature's mipi_rw path, which is the same work as raising
+         the manual maximum. -->
     <item name="config_screenBrightnessDozeFloat" format="float" type="dimen">0.019607844</item>
+
+    <!-- Doze / ambient display. degas has all of the vendor side in place
+         (ro.vendor.mtk_aod_support=1, which is what MTK's hwcomposer's
+         displayGetDozeSupport gates on, plus the n12a panel driver implements
+         set_doze_brightness/get_doze_brightness/doze_disable/doze_post_disp_on/
+         doze_suspend), but framework-res ships config_dozeComponent empty and
+         config_dozeAlwaysOnDisplayAvailable false, which disables doze/AOD
+         outright - so the panel never leaves normal mode and the kernel refuses
+         doze ("panel_set_doze_brightness normal mode cannot set doze
+         brightness"). Point it at SystemUI's DozeService and declare AOD. -->
+    <string name="config_dozeComponent" translatable="false">com.android.systemui/com.android.systemui.doze.DozeService</string>
+    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+
+    <!-- UDFPS while dozing. With the screen in DOZE the touchscreen no longer
+         delivers ordinary input events, so SystemUI's UdfpsView never sees an
+         ACTION_DOWN and the fingerprint HAL is never told a finger is present.
+         The AOSP path for this is DozeSensors' udfps-long-press TriggerSensor,
+         which fires DozeTriggers -> UdfpsController.onAodInterrupt(),
+         dispatching the finger-down straight to the HAL while the device stays
+         dozing; it is gated on this resource, and framework-res ships it empty.
+
+         This is NOT MediaTek's xiaomi.sensor.fod, which we used to point at
+         here: that one is served by the SCP sub-HAL, while degas processes touch
+         frames in userspace (THP), so the SCP never sees a finger and the sensor
+         only ever emitted garbage on movement - producing spurious FOD circles
+         and stacked failed attempts. Ours reads the goodix driver's FOD key from
+         the input device instead; see sensors/UdfpsSensorSubHal.cpp. -->
+    <string name="config_dozeUdfpsLongPressSensorType" translatable="false">org.degas.sensor.udfps_long_press</string>
 
     <!-- Stability requirements in milliseconds for accepting a new brightness level.  This is used
          for debouncing the light sensor.  Different constants are used to debounce the light sensor
@@ -577,40 +624,20 @@
          autodetected from the Configuration. -->
     <bool name="config_showNavigationBar">true</bool>
 
-    <!-- ComponentName of a dream to show whenever the system would otherwise have
-         gone to sleep.  When the PowerManager is asked to go to sleep, it will instead
-         try to start this dream if possible.  The dream should typically call startDozing()
-         to put the display into a low power state and allow the application processor
-         to be suspended.  When the dream ends, the system will go to sleep as usual.
-         Specify the component name or an empty string if none.
-
-         Note that doze dreams are not subject to the same start conditions as ordinary dreams.
-         Doze dreams will run whenever the power manager is in a dozing state. -->
-    <string name="config_dozeComponent" translatable="false">com.android.systemui/com.android.systemui.doze.DozeService</string>
+    <!-- config_dozeComponent and config_dozeAlwaysOnDisplayAvailable belong here
+         in AOSP's ordering, but they are already set further up together with the
+         rest of the doze configuration. aapt2 rejects a resource defined twice in
+         one file, so do not add them back here. -->
 
     <!-- Doze: should the TYPE_PICK_UP_GESTURE sensor be used as a pulse signal. -->
     <bool name="config_dozePulsePickup">true</bool>
-
-    <!-- Type of the double tap sensor. Empty if double tap is not supported. -->
-    <string name="config_dozeDoubleTapSensorType" translatable="false">org.lineageos.sensor.double_tap</string>
-
-    <!-- Type of the tap sensor. Empty if tap is not supported. -->
-    <string name="config_dozeTapSensorType" translatable="false">org.lineageos.sensor.single_tap</string>
-
-    <!-- Type of the udfps long press sensor. Empty if long press is not supported. -->
-    <string name="config_dozeUdfpsLongPressSensorType" translatable="false">org.lineageos.sensor.udfps</string>
-
-    <!-- Control whether the always on display mode is available. This should only be enabled on
-         devices where the display has been tuned to be power efficient in DOZE and/or DOZE_SUSPEND
-         states. -->
-    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
 
     <!-- Control whether the always on display mode is enabled by default. This value will be used
          during initialization when the setting is still null. -->
     <bool name="config_dozeAlwaysOnEnabled">false</bool>
 
     <!-- If AOD can show an ambient version of the wallpaper -->
-    <bool name="config_dozeSupportsAodWallpaper">true</bool>
+    <bool name="config_dozeSupportsAodWallpaper">false</bool>
 
     <!-- Power Management: Specifies whether to decouple the auto-suspend state of the
          device from the display on/off state.
@@ -723,6 +750,16 @@
          rates are available from hardware composer. Only has an effect if the value is
          non-zero. -->
     <integer name="config_defaultPeakRefreshRate">144</integer>
+
+    <!-- Optical LHBM requires 120 Hz. Patch 0005 holds the vote while interactive,
+         but releases it in idle AOD. A scan waits for the actual 120 Hz display mode
+         before onPointerDown, then delays vote release until LHBM has been turned off. -->
+    <integer name="config_udfpsRefreshRate">120</integer>
+
+    <!-- Whether the device supports double tap to wake. The touch controller decodes the
+         gesture itself and reports KEY_WAKEUP; TouchGestureService in XiaomiParts arms it
+         through Touch_Doubletap_Mode on the touchfeature HAL. -->
+    <bool name="config_supportDoubleTapWake">true</bool>
 
     <!-- Whether or not wcg (wide color gamut) should be enabled on this device,
          we only enabled it while the device has ability of mixed color spaces composition -->

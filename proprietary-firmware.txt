@@ -1,25 +1,22 @@
-# TODO: re-extract from degas firmware - list below is inherited from duchamp.
-# Target: degas_global-user 14 UP1A.231005.007 OS2.0.202.0.VNEMIXM release-keys
+# Firmware from stock EEA OS3.0.306.0.WNEEUXM; SHA1 pinned to supplied images.
 
-apusys.img;AB
-audio_dsp.img;AB
-ccu.img;AB
-connsys_bt.img;AB
-connsys_gnss.img;AB
-connsys_wifi.img;AB
-dpm.img;AB
-gpueb.img;AB
-gz.img;AB
-logo.img;AB
-lk.img;AB|690f3871a613545d40a78ce6f0e237252761bcde
-mcf_ota.img;AB
-mcupm.img;AB
-modem.img;AB
-mvpu_algo.img;AB
-pi_img.img;AB
-preloader_raw.img;AB|c8c0116c47cacaa7cb7cafa3fbff3ee30507e171
-scp.img;AB
-spmfw.img;AB
-sspm.img;AB
-tee.img;AB
-vcp.img;AB
+apusys.img;AB|0321a08e0a09c8bc29fb0a63d4b63ad8f3690ad1
+audio_dsp.img;AB|dac37f3089834a91898335ccec535e33387420fa
+ccu.img;AB|b52c1a817cf58dde11abd851cb105cbb1014f8a4
+connsys_bt.img;AB|b6557aed7d5cc4c10712fbaa9a6e02344300ff94
+connsys_gnss.img;AB|c95e770e4adafe144c8531ce65d89d5b19e62d48
+connsys_wifi.img;AB|0ea80915686820925fca69559a24c14781b9bcad
+dpm.img;AB|9ff5a9defa58ec74ae16e7bce4fb97b020996248
+gpueb.img;AB|be26870fdefadc75e86d4a4713d8ec30082194f3
+gz.img;AB|d11c90961236628b2604e04201857f6ca8910851
+lk.img;AB|c486c65f6eb70e22f257aafb47a7d1eecc7d4bcf
+mcf_ota.img;AB|4c1146162386683546b420e73d1884079df2ae73
+mcupm.img;AB|be991a3857ba7633e03af68e3e75439f10b40890
+modem.img;AB|540ad120de7aaa8fa94de326d03785273101421b
+mvpu_algo.img;AB|9e9b96644501af69d215d0b5a707f9b14370a56c
+pi_img.img;AB|cb8c971f9da45b451884a5e571676ce8f07659a1
+scp.img;AB|35df8ac707c653f8d4250c59e45b22faffc2f8c2
+spmfw.img;AB|a0e3352c09ac6820b68b431b44e87950b806d191
+sspm.img;AB|aa9031e7e07392630fef790a1464afd0d1f2b747
+tee.img;AB|991651bfccf816ae91ec0569f11a71524c28f680
+vcp.img;AB|d12cc9af22d1999a8755ba28fb4f2bf6dfbd4ae2

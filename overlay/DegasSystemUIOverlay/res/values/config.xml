@@ -13,9 +13,16 @@
 
     <!-- Whether the display supports Display.STATE_DOZE. With the AOSP default
          (false) SystemUI's DozeScreenState asks PowerManager for STATE_ON while
-         dozing, so SurfaceFlinger stays powerMode=On, the panel is never switched
-         into its DDIC AOD mode, and the kernel rejects AOD brightness with
+         dozing (verified: mDozeScreenStateOverrideFromDreamManager=2), so
+         SurfaceFlinger stays powerMode=On, the panel is never switched into its
+         DDIC AOD mode, and the kernel rejects AOD brightness with
          "panel_set_doze_brightness normal mode cannot set doze brightness".
-         With true, the request becomes STATE_DOZE and AOD runs off the DDIC. -->
+         With true, the request becomes STATE_DOZE -> powerMode=Doze ->
+         "panel_doze_enable" in dmesg, and AOD runs off the DDIC instead
+         of the normal backlight. -->
     <bool name="doze_display_state_supported">true</bool>
+
+    <!-- The MTK doze-capable HWC supports the suspended doze power mode.
+         Let the panel keep its AOD image without continuous GPU composition. -->
+    <bool name="doze_suspend_display_state_supported">true</bool>
 </resources>

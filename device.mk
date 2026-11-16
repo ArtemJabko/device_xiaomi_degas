@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+LOCAL_PATH := device/xiaomi/degas
+
 # Enforce generic ramdisk allow list
 $(call inherit-product, $(SRC_TARGET_DIR)/product/generic_ramdisk.mk)
 
@@ -23,18 +25,15 @@ PRODUCT_VIRTUAL_AB_COMPRESSION_METHOD := lz4
 PRODUCT_VENDOR_PROPERTIES += ro.virtual_ab.compression.threads=true
 endif
 
-# Use erofs for system partitions to fit stock super layout.
-PRODUCT_SYSTEM_PARTITIONS_FILE_SYSTEM_TYPE := erofs
-
-# LineageOS webview prebuilt manifest lacks optional uses-libraries
-# expected by newer build system (com.android.extensions.xr).
-PRODUCT_BROKEN_VERIFY_USES_LIBRARIES := true
-
 AB_OTA_POSTINSTALL_CONFIG += \
     RUN_POSTINSTALL_system=true \
     POSTINSTALL_PATH_system=system/bin/otapreopt_script \
     FILESYSTEM_TYPE_system=$(PRODUCT_SYSTEM_PARTITIONS_FILE_SYSTEM_TYPE) \
     POSTINSTALL_OPTIONAL_system=true
+
+PRODUCT_PACKAGES += \
+    android.hardware.boot-service.mediatek \
+    android.hardware.boot-service.mediatek_recovery
 
 PRODUCT_PACKAGES += \
     create_pl_dev \
@@ -48,8 +47,9 @@ PRODUCT_PACKAGES += \
 
 # Audio
 PRODUCT_PACKAGES += \
-    android.hardware.audio.service.mediatek \
+    android.hardware.audio.service.degas \
     android.hardware.audio.effect@7.0-impl \
+    android.hardware.bluetooth.audio-impl
 
 PRODUCT_PACKAGES += \
     audio.primary.default \
@@ -61,13 +61,19 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     MtkInCallService
 
+PRODUCT_PACKAGES += \
+    libaudiotrack_degas_shim
+
+# The stock KeyMint V3 helpers require fmt v7 from VNDK 34.
+PRODUCT_PACKAGES += \
+    libbase-degas-v34
+
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
-    $(LOCAL_PATH)/configs/audio/audio_policy_configuration_a2dp_offload_enable_cg_enable.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
-    $(LOCAL_PATH)/configs/audio/bluetooth_a2dp_offload_ums_offload_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/bluetooth_a2dp_offload_ums_offload_audio_policy_configuration.xml
+    $(call find-copy-subdir-files,*,$(LOCAL_PATH)/configs/audio/,$(TARGET_COPY_OUT_VENDOR)/etc)
 
 PRODUCT_COPY_FILES += \
     frameworks/av/services/audiopolicy/config/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
+    frameworks/av/services/audiopolicy/config/bluetooth_audio_policy_configuration_7_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/bluetooth_audio_policy_configuration.xml \
     frameworks/av/services/audiopolicy/config/default_volume_tables.xml:$(TARGET_COPY_OUT_VENDOR)/etc/default_volume_tables.xml \
     frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml
 
@@ -132,6 +138,12 @@ PRODUCT_VENDOR_LINKER_CONFIG_FRAGMENTS += \
 PRODUCT_PACKAGES += \
     fastbootd
 
+# Face unlock: libmiface links libcamera2ndk_vendor, whose AIDL dependencies live in
+# an APEX on stock and are not extractable, so build it from source instead.
+PRODUCT_PACKAGES += \
+    libcamera2ndk_vendor
+
+
 # Fingerprint
 PRODUCT_PACKAGES += \
     android.hardware.biometrics.fingerprint-service.xiaomi \
@@ -151,6 +163,7 @@ PRODUCT_PACKAGES += \
     android.hardware.health-service.mediatek \
     android.hardware.health-service.mediatek-recovery
 
+# Health (Lineage charging control)
 PRODUCT_PACKAGES += \
     vendor.lineage.health-service.default
 
@@ -173,6 +186,7 @@ PRODUCT_PACKAGES += \
     init.connectivity.rc \
     init.fingerprint.rc \
     init.mt6897.rc \
+    init.mt6897.usb.rc \
     init.project.rc \
     init.sensor_2_0.rc \
     ueventd.mt6897.rc \
@@ -181,9 +195,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init/init.recovery.mt6897.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6897.rc
 
-# HotwordEnrollement app permissions
+# Input device config (goodix touch registers as virtual input)
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/permissions/privapp-permissions-hotword.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/privapp-permissions-hotword.xml
+    $(LOCAL_PATH)/configs/idc/goodix_ts.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/goodix_ts.idc
 
 # Keymint
 PRODUCT_PACKAGES += \
@@ -231,10 +245,8 @@ PRODUCT_PACKAGES += \
     DegasCarrierConfigOverlay \
     DegasFrameworksOverlay \
     DegasSettingsOverlay \
-    DegasSystemUIOverlay
-
-PRODUCT_PACKAGES += \
-    LineageApertureOverlayDegas
+    DegasSystemUIOverlay \
+    DegasWifiOverlay
 
 PRODUCT_PACKAGES += \
     NcmTetheringOverlay
@@ -256,18 +268,21 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/powerhint.json:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.json
 
-# PowerOffAlarm
-PRODUCT_PACKAGES += \
-    PowerOffAlarm
-
 # Properties
-include $(LOCAL_PATH)/configs/properties/vendor_logtag.mk
+include hardware/mediatek/configs/properties/vendor_logtag.mk
 
 # Radio
 ENABLE_VENDOR_RIL_SERVICE := true
 
 $(call inherit-product, hardware/lineage/compat/frameworks/compat.mk)
-$(call inherit-product, hardware/mediatek/frameworks/mediatek-frameworks.mk)
+
+# The common MTK product also adds telephony/telecom jars to system_ext.
+# This device uses the stock jars in system below; add each boot jar once.
+PRODUCT_PACKAGES += \
+    mediatek-common
+
+PRODUCT_BOOT_JARS += \
+    system_ext:mediatek-common
 
 PRODUCT_PACKAGES += \
     mdota_symlink
@@ -276,10 +291,16 @@ PRODUCT_PACKAGES += \
     xiaomi-telephony-stub
 
 PRODUCT_BOOT_JARS += \
-    xiaomi-telephony-stub
+    xiaomi-telephony-stub \
+    mediatek-telephony-base \
+    mediatek-telephony-common \
+    mediatek-ims-common \
+    mediatek-ims-base \
+    mediatek-telecom-common
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/permissions/privapp-permissions-com.mediatek.ims.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-com.mediatek.ims.xml \
+    $(LOCAL_PATH)/configs/permissions/privapp-permissions-com.xiaomi.settings.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-com.xiaomi.settings.xml \
     $(LOCAL_PATH)/configs/permissions/privapp-permissions-com.mediatek.telephony.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/privapp-permissions-com.mediatek.telephony.xml
 
 PRODUCT_PACKAGES += \
@@ -291,23 +312,26 @@ PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 
 # Security patch level
-BOOT_SECURITY_PATCH := 2026-02-01
+# Retain the stock boot/vendor patch level, independently of the Android 17 platform SPL.
+BOOT_SECURITY_PATCH := 2026-08-01
 INIT_BOOT_SECURITY_PATCH := $(BOOT_SECURITY_PATCH)
-VENDOR_SECURITY_PATCH := $(BOOT_SECURITY_PATCH)
+VENDOR_SECURITY_PATCH := 2026-08-01
 
 # Sensors
 PRODUCT_PACKAGES += \
    android.hardware.sensors-service.xiaomi-multihal
 
 PRODUCT_PACKAGES += \
-   sensor-notifier
+   sensors.dynamic_sensor_hal
 
+# Supplies the one-shot wake sensor behind config_dozeUdfpsLongPressSensorType;
+# no hardware sensor reports a fingerprint press on this device.
 PRODUCT_PACKAGES += \
-   sensors.dynamic_sensor_hal \
-   sensors.xiaomi.v2
+   sensors.udfps.degas
 
+# Ours, not the extracted blob, so that the sub-HAL above is listed.
 PRODUCT_COPY_FILES += \
-   $(LOCAL_PATH)/configs/hals.conf:$(TARGET_COPY_OUT_ODM)/etc/sensors/hals.conf
+    $(LOCAL_PATH)/configs/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf
 
 PRODUCT_PACKAGES += \
    android.hardware.sensor.dynamic.head_tracker.prebuilt.xml \
@@ -324,17 +348,14 @@ PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH) \
     hardware/google/interfaces \
     hardware/google/pixel \
+    hardware/google/pixel/pixelstats \
+    hardware/google/pixel/power-libperfmgr \
     hardware/lineage/interfaces/power-libperfmgr \
     hardware/mediatek \
     hardware/mediatek/libmtkperf_client \
     hardware/xiaomi
 
 # Touchscreen
-PRODUCT_PACKAGES += \
-    vendor.lineage.touch-service.xiaomi
-
-$(call soong_config_set, XIAOMI_TOUCH, HIGH_TOUCH_POLLING_PATH, /sys/devices/virtual/touch/touch_dev/bump_sample_rate)
-
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml
 
@@ -343,7 +364,8 @@ PRODUCT_PACKAGES += \
     android.hardware.thermal-service.mediatek
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/thermal_info_config.json:$(TARGET_COPY_OUT_VENDOR)/etc/thermal_info_config.json
+    $(LOCAL_PATH)/configs/thermal_info_config.json:$(TARGET_COPY_OUT_VENDOR)/etc/thermal_info_config.json \
+    $(LOCAL_PATH)/configs/thermald-devices.conf:$(TARGET_COPY_OUT_VENDOR)/etc/thermald-devices.conf
 
 # Verified boot
 PRODUCT_COPY_FILES += \
@@ -374,7 +396,6 @@ PRODUCT_PACKAGES += \
     android.hardware.wifi-service \
     hostapd \
     libwifi-hal-wrapper \
-    wlan_assistant \
     wpa_supplicant
 
 PRODUCT_PACKAGES += \

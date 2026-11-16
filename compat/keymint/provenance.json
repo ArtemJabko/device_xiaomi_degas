@@ -1,0 +1,10 @@
+{
+  "source_repository": "https://android.googlesource.com/platform/prebuilts/vndk/v34",
+  "source_commit": "c6a2527f4e03a89896f9d44331bc6fe91f679aab",
+  "source_path": "prebuilts/vndk/v34/arm64/arch-arm64-armv8-a/shared/vndk-sp/libbase.so",
+  "source_sha256": "1726ee324728b50e7a672681dc08c82aa6a1608dd282eddcc0595ab3a68a8e40",
+  "patched_sha256": "15f15f70c88c6f6027b4dd8ebf674b821b597a41d98a2cb639fd53ad08ff03a6",
+  "change": "Only ELF SONAME changed to libbase-degas-v34.so",
+  "notice_copied": true,
+  "notice_source": "common/NOTICE_FILES/system/libbase/NOTICE"
+}

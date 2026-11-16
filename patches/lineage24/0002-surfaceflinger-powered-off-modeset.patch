@@ -1,0 +1,20 @@
+diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
+index 9128394..876f58c 100644
+--- a/services/surfaceflinger/SurfaceFlinger.cpp
++++ b/services/surfaceflinger/SurfaceFlinger.cpp
+@@ -1705,6 +1705,15 @@ void SurfaceFlinger::initiateDisplayModeChanges() {
+             }
+             auto& desiredMode = desiredModeIt->second;
+ 
++            // MediaTek must not receive a modeset while its panel is OFF.
++            // Keep the request in the map so the existing bundle cleanup drops
++            // all requests sharing this synchronization token. DOZE is powered on.
++            if (!display->isPoweredOn()) {
++                shouldDropModeRequests = true;
++                canApplyAllModes = false;
++                continue;
++            }
++
+             const auto desiredModeId = desiredMode.mode.modePtr->getId();
+             const auto displayModePtrOpt =
+                     mPhysicalDisplays.get(displayId)

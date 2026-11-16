@@ -12,13 +12,16 @@
 
 #include <poll.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
+#include <atomic>
+#include <cstdint>
 #include <fstream>
+#include <string>
 #include <thread>
 
-#include <drm/mi_disp.h>
-#include <linux/xiaomi_touch.h>
-
 #include "UdfpsHandler.h"
+#include "mi_disp.h"
+#include "xiaomi_touch.h"
 
 #define COMMAND_NIT 10
 #define TARGET_BRIGHTNESS_OFF 0
@@ -28,8 +31,23 @@
 #define PARAM_FOD_PRESSED 1
 #define PARAM_FOD_RELEASED 0
 
-#define DISP_FEATURE_PATH "/dev/mi_display/disp_feature"
 #define TOUCH_DEV_PATH "/dev/xiaomi-touch"
+#define TOUCH_MAGIC 'T'
+#define TOUCH_IOC_SET_CUR_VALUE _IO(TOUCH_MAGIC, SET_CUR_VALUE)
+#define TOUCH_IOC_GET_CUR_VALUE _IO(TOUCH_MAGIC, GET_CUR_VALUE)
+
+#define DISP_FEATURE_PATH "/dev/mi_display/disp_feature"
+
+// How long the panel is given to enter LHBM before readiness is signalled, and
+// how long after a finger-up the off is re-asserted (must outlast the arm).
+#define FOD_ARM_DELAY_US (80 * 1000)
+
+// Hard ceiling on how long LHBM may stay lit without a finger-up. A slow press
+// never reaches it: a normal press cycle is ~180 ms (measured 2026-08-18), and a
+// slow one keeps the sensor emitting onAcquired, which calls onFingerUp and
+// bumps the generation, disarming this.
+#define FOD_STUCK_WATCHDOG_US (1000 * 1000)
+#define FOD_OFF_REASSERT_US (150 * 1000)
 
 using ::aidl::android::hardware::biometrics::fingerprint::AcquiredInfo;
 
@@ -77,8 +95,8 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
   public:
     void init(fingerprint_device_t* device) {
         mDevice = device;
-        disp_fd_ = android::base::unique_fd(open(DISP_FEATURE_PATH, O_RDWR));
         touch_fd_ = android::base::unique_fd(open(TOUCH_DEV_PATH, O_RDWR));
+        disp_fd_ = android::base::unique_fd(open(DISP_FEATURE_PATH, O_RDWR));
 
         // Thread to listen for fod ui changes
         std::thread([this]() {
@@ -104,6 +122,7 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
                     .revents = 0,
             };
 
+            int failures = 0;
             while (true) {
                 int rc = poll(&dispEventPoll, 1, -1);
                 if (rc < 0) {
@@ -111,10 +130,26 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
                     continue;
                 }
 
+                if (dispEventPoll.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                    LOG(ERROR) << "disp event fd in error state, revents: " << std::hex
+                               << dispEventPoll.revents << ", giving up (fallback NIT in use)";
+                    mEventThreadBroken = true;
+                    return;
+                }
+
                 std::shared_ptr<disp_event_resp> response = parseDispEvent(fd.get());
                 if (!response) {
+                    // Broken/foreign event stream (e.g. read() == 0 on degas):
+                    // stop busy-looping, rely on the onFingerDown fallback.
+                    if (++failures >= 10) {
+                        LOG(ERROR) << "too many malformed disp events, giving up "
+                                      "(fallback NIT in use)";
+                        mEventThreadBroken = true;
+                        return;
+                    }
                     continue;
                 }
+                failures = 0;
 
                 if (response->base.type != MI_DISP_EVENT_FOD) {
                     LOG(ERROR) << "unexpected display event: " << response->base.type;
@@ -134,16 +169,12 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
     }
 
     void onFingerDown(uint32_t x, uint32_t y, float /*minor*/, float /*major*/) {
-        LOG(DEBUG) << __func__ << "x: " << x << ", y: " << y;
+        LOG(INFO) << __func__ << "x: " << x << ", y: " << y;
+
+        uint64_t generation = ++mFodGeneration;
+        mFingerDown = true;
 
         mDevice->extCmd(mDevice, COMMAND_FOD_PRESS_STATUS, PARAM_FOD_PRESSED);
-
-        // Update fod_finger_state node in case hwmodule polls it
-        struct touch_mode_request touchRequest = {
-                .mode = TOUCH_MODE_FOD_FINGER_STATE,
-                .value = 1,
-        };
-        ioctl(touch_fd_.get(), TOUCH_IOC_SET_CUR_VALUE, &touchRequest);
 
         // Request HBM
         struct disp_local_hbm_req displayLhbmRequest = {
@@ -151,10 +182,65 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
                 .local_hbm_value = LHBM_TARGET_BRIGHTNESS_WHITE_1000NIT,
         };
         ioctl(disp_fd_.get(), MI_DISP_IOCTL_SET_LOCAL_HBM, &displayLhbmRequest);
+
+        // Notify touchscreen about press status
+        setFingerDown(true);
+
+        if (mEventThreadBroken) {
+            // degas: FOD UI-ready disp events never arrive — give the panel a
+            // moment to enter LHBM, then signal readiness to the sensor.
+            //
+            // This must NOT block the caller and must be abandoned if the press
+            // ends first: a stray finger-down can land right after a successful
+            // auth (measured: 2 ms before the overlay teardown starts), and a
+            // turn-on delivered after teardown has nobody left to turn it off,
+            // so the spot stays lit forever.
+            std::thread([this, generation]() {
+                usleep(FOD_ARM_DELAY_US);
+                if (mFodGeneration != generation) {
+                    LOG(INFO) << "stale FOD arm, not lighting LHBM";
+                    return;
+                }
+                mDevice->extCmd(mDevice, COMMAND_NIT, TARGET_BRIGHTNESS_1000NIT);
+            }).detach();
+        }
+
+        /*
+         * Measured 2026-08-18: the stray finger-down lands 13 ms *after*
+         * onAuthenticated and is then the last event of the session - no
+         * finger-up ever follows, because the UDFPS overlay is already being
+         * torn down. Both generation-based guards (the stale-arm check above
+         * and the off-reassert in onFingerUp) are powerless there: nothing is
+         * left to bump the generation. Bound the lit time directly instead.
+         *
+         * Seen on unlock and, more often, during enrolment, where the
+         * press-succeed-press cycle replays the race dozens of times.
+         */
+        std::thread([this, generation]() {
+            usleep(FOD_STUCK_WATCHDOG_US);
+            if (mFodGeneration != generation || !mFingerDown) {
+                return;
+            }
+            LOG(INFO) << "FOD watchdog: no finger-up, forcing LHBM off";
+            mFingerDown = false;
+            struct disp_local_hbm_req watchdogRequest = {
+                    .base = displayBasePrimary,
+                    .local_hbm_value = LHBM_TARGET_BRIGHTNESS_OFF_FINGER_UP,
+            };
+            ioctl(disp_fd_.get(), MI_DISP_IOCTL_SET_LOCAL_HBM, &watchdogRequest);
+            if (mEventThreadBroken) {
+                mDevice->extCmd(mDevice, COMMAND_NIT, TARGET_BRIGHTNESS_OFF);
+            }
+            mDevice->extCmd(mDevice, COMMAND_FOD_PRESS_STATUS, PARAM_FOD_RELEASED);
+            setFingerDown(false);
+        }).detach();
     }
 
     void onFingerUp() {
-        LOG(DEBUG) << __func__;
+        LOG(INFO) << __func__;
+
+        uint64_t generation = ++mFodGeneration;
+        bool wasDown = mFingerDown.exchange(false);
 
         mDevice->extCmd(mDevice, COMMAND_FOD_PRESS_STATUS, PARAM_FOD_RELEASED);
 
@@ -165,12 +251,32 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
         };
         ioctl(disp_fd_.get(), MI_DISP_IOCTL_SET_LOCAL_HBM, &displayLhbmRequest);
 
-        // Update fod_finger_state node in case hwmodule polls it
-        struct touch_mode_request touchRequest = {
-                .mode = TOUCH_MODE_FOD_FINGER_STATE,
-                .value = 0,
-        };
-        ioctl(touch_fd_.get(), TOUCH_IOC_SET_CUR_VALUE, &touchRequest);
+        if (mEventThreadBroken) {
+            mDevice->extCmd(mDevice, COMMAND_NIT, TARGET_BRIGHTNESS_OFF);
+        }
+
+        // Notify touchscreen about press status
+        setFingerDown(false);
+
+        // Belt and braces for the stuck-spot race above: anything that lit LHBM
+        // around this teardown (ours or the vendor HAL's own timing) is undone
+        // once the arm window has passed. Skipped if a new press started since.
+        if (wasDown) {
+            std::thread([this, generation]() {
+                usleep(FOD_OFF_REASSERT_US);
+                if (mFodGeneration != generation) {
+                    return;
+                }
+                struct disp_local_hbm_req displayLhbmRequest = {
+                        .base = displayBasePrimary,
+                        .local_hbm_value = LHBM_TARGET_BRIGHTNESS_OFF_FINGER_UP,
+                };
+                ioctl(disp_fd_.get(), MI_DISP_IOCTL_SET_LOCAL_HBM, &displayLhbmRequest);
+                if (mEventThreadBroken) {
+                    mDevice->extCmd(mDevice, COMMAND_NIT, TARGET_BRIGHTNESS_OFF);
+                }
+            }).detach();
+        }
     }
 
     void onAcquired(int32_t result, int32_t vendorCode) {
@@ -191,17 +297,31 @@ class XiaomiDegasUdfpsHandler : public UdfpsHandler {
             default:
                 break;
         }
+
+        if (vendorCode == 21 || vendorCode == 22) {
+            setFingerDown(PARAM_FOD_PRESSED);
+        }
     }
 
     void cancel() {
-        LOG(DEBUG) << __func__;
+        LOG(INFO) << __func__;
         onFingerUp();
     }
 
   private:
     fingerprint_device_t* mDevice;
-    android::base::unique_fd disp_fd_;
     android::base::unique_fd touch_fd_;
+    android::base::unique_fd disp_fd_;
+    std::atomic<bool> mEventThreadBroken{false};
+    // Bumped by every finger-down/up so a delayed action can tell whether the
+    // press it belongs to is still the current one.
+    std::atomic<uint64_t> mFodGeneration{0};
+    std::atomic<bool> mFingerDown{false};
+
+    void setFingerDown(bool pressed) {
+        int buf[MAX_BUF_SIZE] = {MI_DISP_PRIMARY, Touch_Fod_Enable, pressed ? 1 : 0};
+        ioctl(touch_fd_.get(), TOUCH_IOC_SET_CUR_VALUE, &buf);
+    }
 };
 
 static UdfpsHandler* create() {

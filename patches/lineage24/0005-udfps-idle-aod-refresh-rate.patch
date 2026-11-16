@@ -1,0 +1,314 @@
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index b5e95f4..17d9b7e 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -55,6 +55,7 @@ import android.os.VibrationAttributes;
+ import android.os.VibrationEffect;
+ import android.provider.Settings;
+ import android.util.Log;
++import android.view.Display;
+ import android.view.HapticFeedbackConstants;
+ import android.view.LayoutInflater;
+ import android.view.MotionEvent;
+@@ -197,6 +198,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+     private final boolean mIgnoreRefreshRate;
+     private final boolean mHoldRefreshRateWhileShown;
+     @Nullable private UdfpsDisplayModeProvider mHeldDisplayMode;
++    @Nullable private final UdfpsRefreshRateController mRefreshRateController;
++    private final DisplayManager mDisplayManager;
++    private boolean mPointerDownDispatched;
+     private final KeyguardTransitionInteractor mKeyguardTransitionInteractor;
+ 
+     // Currently the UdfpsController supports a single UDFPS sensor. If devices have multiple
+@@ -378,6 +382,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+                         return;
+                     }
+                     mAcquiredReceived = true;
++                    if (mRefreshRateController != null) mRefreshRateController.endScan();
+                     final View view = mOverlay.getTouchOverlay();
+                     unconfigureDisplay(view);
+                     tryAodSendFingerUp();
+@@ -820,6 +825,45 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         if (mWakefulnessLifecycle != null) {
+             mWakefulnessLifecycle.addObserver(mWakefulnessLifecycleObserver);
+         }
++        mDisplayManager = displayManager;
++        mRefreshRateController = mHoldRefreshRateWhileShown
++                ? new UdfpsRefreshRateController(mFgExecutor::executeDelayed,
++                        this::isUdfpsDisplayModeReady,
++                        () -> {
++                            mHeldDisplayMode = mUdfpsDisplayMode;
++                            if (mHeldDisplayMode != null) mHeldDisplayMode.enable(() -> { });
++                        },
++                        () -> {
++                            if (mHeldDisplayMode != null) mHeldDisplayMode.disable(() -> { });
++                            mHeldDisplayMode = null;
++                        }) : null;
++        if (mRefreshRateController != null) {
++            mRefreshRateController.setDozing(mStatusBarStateController.isDozing());
++            mStatusBarStateController.addCallback(new StatusBarStateController.StateListener() {
++                @Override
++                public void onDozingChanged(boolean isDozing) {
++                    mRefreshRateController.setDozing(isDozing);
++                }
++            });
++            mDisplayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
++                @Override public void onDisplayAdded(int id) { }
++                @Override public void onDisplayRemoved(int id) { }
++                @Override public void onDisplayChanged(int id) {
++                    if (id == mContext.getDisplayId()) {
++                        mRefreshRateController.onDisplayChanged();
++                    }
++                }
++            }, mainHandler);
++        }
++    }
++
++    private boolean isUdfpsDisplayModeReady() {
++        final Display display = mDisplayManager.getDisplay(mContext.getDisplayId());
++        if (mHeldDisplayMode == null || display == null) return false;
++        final int state = display.getState();
++        final int rate = mContext.getResources().getInteger(R.integer.config_udfpsRefreshRate);
++        return (state == Display.STATE_ON || state == Display.STATE_DOZE)
++                && Math.abs(display.getMode().getRefreshRate() - rate) < 1f;
+     }
+ 
+     /**
+@@ -876,9 +920,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+             mOnFingerDown = false;
+             mAttemptedToDismissKeyguard = false;
+             mOrientationListener.enable();
+-            if (mHoldRefreshRateWhileShown && mUdfpsDisplayMode != null && isOptical()) {
+-                mHeldDisplayMode = mUdfpsDisplayMode;
+-                mHeldDisplayMode.enable(() -> { });
++            if (mRefreshRateController != null && isOptical()) {
++                mRefreshRateController.setOverlayVisible(true);
+             }
+             if (mFingerprintManager != null) {
+                 mFingerprintManager.onUdfpsUiEvent(FingerprintManager.UDFPS_UI_OVERLAY_SHOWN,
+@@ -899,9 +942,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+                 onFingerUp(mOverlay.getRequestId(), oldView);
+             }
+             final boolean removed = mOverlay.hide();
+-            if (mHeldDisplayMode != null) {
+-                mHeldDisplayMode.disable(() -> { });
+-                mHeldDisplayMode = null;
++            if (mRefreshRateController != null) {
++                mRefreshRateController.setOverlayVisible(false);
+             }
+             mKeyguardViewManager.hideAlternateBouncer(
+                     /* updateScrim */ true,
+@@ -1123,23 +1165,38 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+             mDeviceEntryFaceAuthInteractor.onUdfpsSensorTouched();
+         }
+         mOnFingerDown = true;
+-        mFingerprintManager.onPointerDown(requestId, mSensorProps.sensorId, pointerId, x, y,
+-                minor, major, orientation, time, gestureStart, isAod);
+-        Trace.endAsyncSection("UdfpsController.e2e.onPointerDown", 0);
+-
+-        final View view = mOverlay.getTouchOverlay();
+-        if (isOptical() && view instanceof UdfpsTouchOverlay udfpsView) {
+-            if (mIgnoreRefreshRate || mHoldRefreshRateWhileShown) {
+-                dispatchOnUiReady(requestId);
+-            } else {
+-                udfpsView.configureDisplay(() -> dispatchOnUiReady(requestId));
++        final Runnable sendPointerDown = () -> {
++            mPointerDownDispatched = true;
++            mFingerprintManager.onPointerDown(requestId, mSensorProps.sensorId, pointerId, x, y,
++                    minor, major, orientation, time, gestureStart, isAod);
++            Trace.endAsyncSection("UdfpsController.e2e.onPointerDown", 0);
++
++            final View view = mOverlay.getTouchOverlay();
++            if (isOptical() && view instanceof UdfpsTouchOverlay udfpsView) {
++                if (mIgnoreRefreshRate || mHoldRefreshRateWhileShown) {
++                    dispatchOnUiReady(requestId);
++                } else {
++                    udfpsView.configureDisplay(() -> dispatchOnUiReady(requestId));
++                }
+             }
+-        }
+-
+-        if (isOptical()) {
+-            for (Callback cb : mCallbacks) {
+-                cb.onFingerDown();
++            if (isOptical()) {
++                for (Callback cb : mCallbacks) cb.onFingerDown();
+             }
++        };
++        if (mRefreshRateController != null && isOptical()) {
++            // The vendor HAL illuminates onPointerDown, not onUiReady. Wait for
++            // the actual mode report before sending it, including after AOD suspend.
++            mRefreshRateController.startScan(sendPointerDown, () -> {
++                Log.w(TAG, "UDFPS mode did not settle; cancelling illumination");
++                mLatencyTracker.onActionCancel(ACTION_UDFPS_ILLUMINATE);
++                Trace.endAsyncSection("UdfpsController.e2e.onPointerDown", 0);
++                if (mOverlay != null && mOverlay.matchesRequestId(requestId)) {
++                    final View view = mOverlay.getTouchOverlay();
++                    if (view != null) onFingerUp(requestId, view);
++                }
++            });
++        } else {
++            sendPointerDown.run();
+         }
+     }
+ 
+@@ -1173,7 +1230,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         mExecution.assertIsMainThread();
+         mActivePointerId = MotionEvent.INVALID_POINTER_ID;
+         mAcquiredReceived = false;
+-        if (mOnFingerDown) {
++        if (mPointerDownDispatched) {
+             mFingerprintManager.onPointerUp(requestId, mSensorProps.sensorId, pointerId, x,
+                     y, minor, major, orientation, time, gestureStart, isAod);
+             if (isOptical()) {
+@@ -1182,7 +1239,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+                 }
+             }
+         }
++        mPointerDownDispatched = false;
+         mOnFingerDown = false;
++        if (mRefreshRateController != null) mRefreshRateController.endScan();
+         unconfigureDisplay(view);
+         cancelAodSendFingerUpAction();
+     }
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsRefreshRateController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsRefreshRateController.java
+new file mode 100644
+index 0000000..5d26a6d
+--- /dev/null
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsRefreshRateController.java
+@@ -0,0 +1,135 @@
++/*
++ * Copyright (C) 2026 The PixelOS Project
++ * SPDX-License-Identifier: Apache-2.0
++ */
++package com.android.systemui.biometrics;
++
++import java.util.function.BooleanSupplier;
++
++/** Holds the optical sensor rate while interactive, and only during a scan in doze. */
++final class UdfpsRefreshRateController {
++    interface Scheduler {
++        Runnable after(Runnable action, long delayMillis);
++    }
++
++    // Allow two 120 Hz frames before illumination and outlast degas' 150 ms HBM off reassert.
++    private static final long SETTLE_MS = 20;
++    private static final long RELEASE_MS = 200;
++    private static final long TIMEOUT_MS = 800;
++
++    private final Scheduler scheduler;
++    private final BooleanSupplier modeReady;
++    private final Runnable enable;
++    private final Runnable disable;
++    private boolean visible;
++    private boolean dozing;
++    private boolean scanning;
++    private boolean held;
++    private int generation;
++    private Runnable pending;
++    private Runnable cancelSettle;
++    private Runnable cancelTimeout;
++    private Runnable cancelRelease;
++
++    UdfpsRefreshRateController(Scheduler scheduler, BooleanSupplier modeReady,
++            Runnable enable, Runnable disable) {
++        this.scheduler = scheduler;
++        this.modeReady = modeReady;
++        this.enable = enable;
++        this.disable = disable;
++    }
++
++    void setDozing(boolean value) {
++        dozing = value;
++        updateVote();
++    }
++
++    void setOverlayVisible(boolean value) {
++        visible = value;
++        if (!value) {
++            endScan();
++        } else {
++            updateVote();
++        }
++    }
++
++    void startScan(Runnable onReady, Runnable onTimeout) {
++        cancelPending();
++        scanning = true;
++        pending = onReady;
++        updateVote();
++        final int token = generation;
++        cancelTimeout = scheduler.after(() -> {
++            if (generation != token || pending == null) return;
++            cancelTimeout = null;
++            endScan();
++            onTimeout.run();
++        }, TIMEOUT_MS);
++        onDisplayChanged();
++    }
++
++    void endScan() {
++        cancelPending();
++        scanning = false;
++        updateVote();
++    }
++
++    void onDisplayChanged() {
++        if (pending == null) return;
++        if (!modeReady.getAsBoolean()) {
++            if (cancelSettle != null) cancelSettle.run();
++            cancelSettle = null;
++            // Invalidate a queued settlement, even if its cancellation raced delivery.
++            settleGeneration++;
++            return;
++        }
++        if (cancelSettle != null) return;
++        final int token = generation;
++        final int settleToken = ++settleGeneration;
++        cancelSettle = scheduler.after(() -> {
++            if (token != generation || settleToken != settleGeneration) return;
++            cancelSettle = null;
++            if (pending == null || !modeReady.getAsBoolean()) return;
++            final Runnable action = pending;
++            pending = null;
++            if (cancelTimeout != null) cancelTimeout.run();
++            cancelTimeout = null;
++            action.run();
++        }, SETTLE_MS);
++    }
++
++    private int settleGeneration;
++
++    private void cancelPending() {
++        generation++;
++        settleGeneration++;
++        pending = null;
++        if (cancelSettle != null) cancelSettle.run();
++        if (cancelTimeout != null) cancelTimeout.run();
++        cancelSettle = null;
++        cancelTimeout = null;
++    }
++
++    private void updateVote() {
++        if (visible && (!dozing || scanning)) {
++            releaseGeneration++;
++            if (cancelRelease != null) cancelRelease.run();
++            cancelRelease = null;
++            if (!held) {
++                held = true;
++                enable.run();
++            }
++        } else if (held && cancelRelease == null) {
++            final int token = ++releaseGeneration;
++            cancelRelease = scheduler.after(() -> {
++                if (token != releaseGeneration) return;
++                cancelRelease = null;
++                if (!held || (visible && (!dozing || scanning))) return;
++                held = false;
++                disable.run();
++            }, RELEASE_MS);
++        }
++    }
++
++    private int releaseGeneration;
++}
