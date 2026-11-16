@@ -1,6 +1,6 @@
 # Xiaomi 14T (degas) — Evolution X 17
 
-Device tree for **Xiaomi 14T** targeting [Evolution X cnb / Android 17](https://github.com/Evolution-X/manifest/tree/cnb). Lunch target: `evolution_degas`.
+Device tree for **Xiaomi 14T** targeting [Evolution X cnb / Android 17](https://github.com/Evolution-X/manifest/tree/cnb). Lunch target: `lineage_degas-cp2a-user`, build target: `m evolution`.
 
 | Item | Specification |
 | --- | --- |
@@ -8,7 +8,7 @@ Device tree for **Xiaomi 14T** targeting [Evolution X cnb / Android 17](https://
 | SoC | MediaTek Dimensity 8300-Ultra / MT6897 |
 | GPU | Mali-G615 MC6 |
 | Display | 6.67-inch AMOLED, 1220 × 2712, up to 144 Hz |
-| ROM target | Evolution X cnb, `evolution_degas` |
+| ROM target | Evolution X cnb, `lineage_degas` (GMS by default, `WITH_GMS := false` for vanilla) |
 | Stock base | HyperOS **OS3.0.306.0.WNEEUXM**, EEA, Android 16 |
 | Kernel | Prebuilt GKI 6.1.157 ([mt6897-degas lineage-24.0](https://github.com/mt6897-degas/android_device_xiaomi_degas-kernel/tree/lineage-24.0)) |
 
