@@ -64,6 +64,12 @@
          that can be set by the user. -->
     <integer name="config_screenBrightnessDoze">5</integer>
 
+    <!-- Float counterpart of config_screenBrightnessDoze - DisplayPowerController
+         reads THIS one, the integer above is only a legacy fallback. 5/255 lands
+         at dbv ~336, comfortably inside the panel's first local-HBM bucket, so
+         the fingerprint is still lit while dozing. -->
+    <item name="config_screenBrightnessDozeFloat" format="float" type="dimen">0.019607844</item>
+
     <!-- Stability requirements in milliseconds for accepting a new brightness level.  This is used
          for debouncing the light sensor.  Different constants are used to debounce the light sensor
          when adapting to brighter or darker environments.  This parameter controls how quickly
@@ -697,7 +703,7 @@
 
          @see https://www.w3.org/TR/SVG/paths.html#PathData
          -->
-    <string name="config_mainBuiltInDisplayCutout" translatable="false">M 0,0 H -39 V 102 H 39 V 0 H 0 Z</string>
+    <string name="config_mainBuiltInDisplayCutout" translatable="false">M 0,0 H -30 V 138 H 30 V 0 H 0 Z</string>
 
     <!-- Enable Zram writeback feature to allow unused pages in zram be written to flash. -->
     <bool name="config_zramWriteback">true</bool>
