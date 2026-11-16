@@ -172,10 +172,6 @@ $(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
 $(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
 $(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
 
-# IFAA manager
-PRODUCT_PACKAGES += \
-    IFAAService
-
 # Init
 PRODUCT_PACKAGES += \
     degas-backlight-sync \
@@ -247,9 +243,6 @@ PRODUCT_PACKAGES += \
     DegasSettingsOverlay \
     DegasSystemUIOverlay \
     DegasWifiOverlay
-
-PRODUCT_PACKAGES += \
-    NcmTetheringOverlay
 
 # Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
