@@ -6,6 +6,11 @@
 # The stock Xiaomi face service supplies IFace/default.
 TARGET_PROVIDES_FACE_UNLOCK_HAL := true
 
+# Evolution X ships GMS by default. Select the GMS A/B branch (erofs + VABC)
+# before inheriting device.mk; that is the branch the PixelOS 17 bring-up
+# verified booting. Flip to false for a vanilla build.
+WITH_GMS := true
+
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit_only.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
@@ -13,8 +18,9 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 # Inherit from device makefile.
 $(call inherit-product, device/xiaomi/degas/device.mk)
 
-# Inherit Evolution X phone configuration.
-$(call inherit-product, vendor/evolution/config/common_full_phone.mk)
+# Evolution X ships its vendor tree at the vendor/lineage path
+# (manifest: Evolution-X/vendor_evolution -> vendor/lineage).
+$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 
 # Evolution X specific flags
 EVO_BUILD_TYPE := Unofficial
@@ -26,7 +32,7 @@ PRODUCT_BRAND := Xiaomi
 PRODUCT_DEVICE := degas
 PRODUCT_MANUFACTURER := Xiaomi
 PRODUCT_MODEL := 2406APNFAG
-PRODUCT_NAME := evolution_degas
+PRODUCT_NAME := lineage_degas
 
 PRODUCT_CHARACTERISTICS := nosdcard
 PRODUCT_GMS_CLIENTID_BASE := android-xiaomi

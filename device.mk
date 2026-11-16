@@ -244,6 +244,9 @@ PRODUCT_PACKAGES += \
     DegasSystemUIOverlay \
     DegasWifiOverlay
 
+PRODUCT_PACKAGES += \
+    NcmTetheringOverlay
+
 # Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
